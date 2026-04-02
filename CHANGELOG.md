@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- clarified that `harness-engineer init` bootstraps the full repository-owned Codex baseline in one command
+- updated generated prompts and documentation to tell Codex to reuse the scaffolded subagents, config, memory, runbooks, and docs before inventing ad hoc setup
+
 ## 0.2.0
 
 - aligned the default `generic-software` preset with OpenAI's harness engineering article
