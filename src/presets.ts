@@ -895,7 +895,22 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
     This file is the Codex harness entrypoint for the repository. It links the record system,
     fixed role runbooks, durable memory, and task artifacts together.
 
-    ## 1. Read first
+    ## 1. Bootstrap contract
+
+    This repository is expected to have been initialized by \`harness-engineer init\`.
+    Treat the generated harness as complete by default:
+
+    - \`AGENTS.override.md\` is the Codex entrypoint
+    - \`.codex/config.toml\` is the project-local baseline
+    - \`.codex/agents/\` contains the fixed subagent pool
+    - \`.codex/memory/\` contains durable memory
+    - \`docs/runbooks/\` contains reusable operating instructions
+    - record-system docs already exist under \`docs/\`
+    - task execution artifacts belong under \`docs/exec-plans/\` and \`logs/codex/\`
+
+    Do not re-bootstrap this structure manually unless files are actually missing or drifted.
+
+    ## 2. Read first
 
     Main-thread default order:
 
@@ -908,11 +923,11 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
     7. The most recent handoff
     8. Only then the implementation
 
-    ## 2. Record-system docs
+    ## 3. Record-system docs
 
     ${config.truthSources.map((source) => `- \`../${source.path}\` — ${source.summary}`).join("\n")}
 
-    ## 3. Harness-owned files
+    ## 4. Harness-owned files
 
     - \`../.codex/config.toml\`
     - \`../.codex/agents/\`
@@ -932,7 +947,22 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
 
     这个文件是仓库内 Codex harness 的入口，负责把记录系统、固定角色 runbook、长期 memory 和任务产物串起来。
 
-    ## 1. 优先读取顺序
+    ## 1. 初始化契约
+
+    这个仓库默认已经通过 \`harness-engineer init\` 完成初始化。
+    你应当把生成出的 harness 视为完整基线：
+
+    - \`AGENTS.override.md\` 是 Codex 入口
+    - \`.codex/config.toml\` 是项目本地基线配置
+    - \`.codex/agents/\` 提供固定子代理池
+    - \`.codex/memory/\` 提供长期记忆
+    - \`docs/runbooks/\` 提供可复用操作说明
+    - \`docs/\` 下已经包含记录系统文档
+    - 任务执行产物应落在 \`docs/exec-plans/\` 和 \`logs/codex/\`
+
+    除非文件真实缺失或已经漂移，否则不要手动重新搭建这套结构。
+
+    ## 2. 优先读取顺序
 
     主线程默认顺序：
 
@@ -945,11 +975,11 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
     7. 最新 handoff
     8. 最后才看具体实现代码
 
-    ## 2. 记录系统文档
+    ## 3. 记录系统文档
 
     ${config.truthSources.map((source) => `- \`../${source.path}\` — ${source.title}`).join("\n")}
 
-    ## 3. Harness 自有文件
+    ## 4. Harness 自有文件
 
     - \`../.codex/config.toml\`
     - \`../.codex/agents/\`
@@ -980,7 +1010,22 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     Durable truth belongs in \`ARCHITECTURE.md\`, \`docs/design-docs/\`, \`docs/product-specs/\`,
     \`docs/exec-plans/\`, and \`.codex/memory/\`.
 
-    ## 1. Priorities
+    ## 1. Bootstrap guarantee
+
+    Assume this repository was initialized by \`harness-engineer init\`.
+    One initialization command is intended to scaffold the complete baseline:
+
+    - Codex entrypoint and repository map
+    - project-local Codex config
+    - fixed subagent definitions under \`.codex/agents/\`
+    - durable memory under \`.codex/memory/\`
+    - reusable runbooks under \`docs/runbooks/\`
+    - record-system docs under \`docs/\`
+    - execution-plan and run-log directories
+
+    Before inventing ad hoc setup, first use the generated subagents, configs, and docs.
+
+    ## 2. Priorities
 
     Resolve conflicts in this order:
 
@@ -991,7 +1036,7 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     5. The current code
     6. Chat inference
 
-    ## 2. Before starting any task
+    ## 3. Before starting any task
 
     Main threads should read:
 
@@ -1002,7 +1047,7 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     5. The latest handoff
     6. Then the code
 
-    ## 3. Long-running task artifacts
+    ## 4. Long-running task artifacts
 
     Durable task artifacts live in:
 
@@ -1011,11 +1056,11 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     - \`logs/codex/active/<task-slug>/handoff.md\`
     - \`.codex/memory/*.md\`
 
-    ## 4. Fixed roles
+    ## 5. Fixed roles
 
     ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
 
-    ## 5. Main-thread responsibilities
+    ## 6. Main-thread responsibilities
 
     The main thread exists to:
 
@@ -1024,13 +1069,13 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     - keep plans, logs, and handoffs current
     - summarize outputs and identify record-system updates
 
-    ## 6. Language mode
+    ## 7. Language mode
 
     - Preferred harness language: \`${config.language}\`
     - Keep the canonical file paths unchanged.
     - Respect \`docs/index.md\`, runbooks, memory, plans, and logs as repository truth.
 
-    ## 7. Output preference
+    ## 8. Output preference
 
     - If the task is conversational or documentation-heavy, respond in Chinese when helpful.
     - Keep code, file paths, CLI commands, and schema keys in their canonical form.
@@ -1044,7 +1089,22 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     \`ARCHITECTURE.md\`、\`docs/design-docs/\`、\`docs/product-specs/\`、\`docs/exec-plans/\`
     和 \`.codex/memory/\`。
 
-    ## 1. 优先级
+    ## 1. 初始化保证
+
+    默认这个仓库已经通过 \`harness-engineer init\` 完成初始化。
+    一条初始化命令就应该搭好完整基线：
+
+    - Codex 入口和仓库地图
+    - 项目本地 Codex 配置
+    - \`.codex/agents/\` 下的固定子代理定义
+    - \`.codex/memory/\` 下的长期记忆
+    - \`docs/runbooks/\` 下的可复用 runbook
+    - \`docs/\` 下的记录系统文档
+    - 执行计划与运行日志目录
+
+    在发明临时搭建方式之前，先使用已经生成好的子代理、配置和文档。
+
+    ## 2. 优先级
 
     冲突按以下顺序处理：
 
@@ -1055,7 +1115,7 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     5. 当前代码
     6. 聊天推断
 
-    ## 2. 开始任务前
+    ## 3. 开始任务前
 
     主线程应先读取：
 
@@ -1066,7 +1126,7 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     5. 最新 handoff
     6. 然后再读代码
 
-    ## 3. 长周期任务产物
+    ## 4. 长周期任务产物
 
     持久任务产物位于：
 
@@ -1075,11 +1135,11 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     - \`logs/codex/active/<task-slug>/handoff.md\`
     - \`.codex/memory/*.md\`
 
-    ## 4. 固定角色
+    ## 5. 固定角色
 
     ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
 
-    ## 5. 主线程职责
+    ## 6. 主线程职责
 
     主线程负责：
 
@@ -1088,13 +1148,13 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
     - 持续维护计划、日志和 handoff
     - 汇总结果并识别需要更新的记录系统文档
 
-    ## 6. 语言模式
+    ## 7. 语言模式
 
     - 当前偏好语言：\`${config.language}\`
     - 保持标准文件路径不变。
     - 继续以 \`docs/index.md\`、runbook、memory、exec plan 和 log 作为仓库记录系统。
 
-    ## 7. 输出偏好
+    ## 8. 输出偏好
 
     - 对话类或文档类任务在有帮助时优先使用中文。
     - 代码、文件路径、CLI 命令和 schema key 保持其标准写法。
@@ -1229,7 +1289,21 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         This runbook constrains the single orchestration thread for ${config.projectName}.
         The main thread coordinates work, preserves context, and integrates fixed-role outputs.
 
-        ## 1. Read before starting
+        ## 1. Bootstrap assumption
+
+        Assume \`harness-engineer init\` already created the full repository-owned harness:
+
+        - \`AGENTS.override.md\`
+        - \`.codex/config.toml\`
+        - \`.codex/agents/\`
+        - \`.codex/memory/\`
+        - \`docs/runbooks/\`
+        - record-system docs
+        - execution-plan and log directories
+
+        The main thread should use this baseline directly instead of rebuilding it ad hoc.
+
+        ## 2. Read before starting
 
         1. \`../../AGENTS.override.md\`
         2. \`../index.md\`
@@ -1241,7 +1315,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         8. The latest handoff
         9. Relevant record-system docs
 
-        ## 2. Fixed duties
+        ## 3. Fixed duties
 
         - classify the task
         - define scope and validation
@@ -1249,11 +1323,11 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         - maintain plan, run log, and handoff
         - summarize risks and record-system updates
 
-        ## 3. Fixed role pool
+        ## 4. Fixed role pool
 
         ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
 
-        ## 4. Task artifact locations
+        ## 5. Task artifact locations
 
         - \`../../docs/exec-plans/active/<task-slug>.md\`
         - \`../../logs/codex/active/<task-slug>/run.md\`
@@ -1264,7 +1338,21 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         这个 runbook 约束 ${config.projectName} 的单一编排主线程。
         主线程负责协同工作、保留上下文，并整合固定角色的输出。
 
-        ## 1. 开始前先读
+        ## 1. 初始化假设
+
+        默认 \`harness-engineer init\` 已经生成完整的仓库内 harness：
+
+        - \`AGENTS.override.md\`
+        - \`.codex/config.toml\`
+        - \`.codex/agents/\`
+        - \`.codex/memory/\`
+        - \`docs/runbooks/\`
+        - 记录系统文档
+        - 执行计划与日志目录
+
+        主线程应直接使用这套基线，而不是临时重新搭建。
+
+        ## 2. 开始前先读
 
         1. \`../../AGENTS.override.md\`
         2. \`../index.md\`
@@ -1276,7 +1364,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         8. 最新 handoff
         9. 相关记录系统文档
 
-        ## 2. 固定职责
+        ## 3. 固定职责
 
         - 任务分级
         - 定义范围和验证方式
@@ -1284,11 +1372,11 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         - 维护计划、run log 和 handoff
         - 汇总风险和记录系统更新
 
-        ## 3. 固定角色池
+        ## 4. 固定角色池
 
         ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
 
-        ## 4. 任务产物位置
+        ## 5. 任务产物位置
 
         - \`../../docs/exec-plans/active/<task-slug>.md\`
         - \`../../logs/codex/active/<task-slug>/run.md\`
@@ -1303,7 +1391,15 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         This file gives a new orchestration main thread a reusable startup prompt and
         dispatch templates for the fixed role pool.
 
-        ## 1. Main-thread startup checklist
+        ## 1. Bootstrap contract
+
+        Treat this repository as already fully scaffolded by \`harness-engineer init\`.
+        A fresh repo bootstrap is expected to include all fixed subagents, config, memory,
+        runbooks, record-system docs, and task directories needed for normal operation.
+
+        Only create missing harness files when drift or damage is real.
+
+        ## 2. Main-thread startup checklist
 
         1. Read \`AGENTS.override.md\`.
         2. Read \`docs/index.md\`.
@@ -1315,11 +1411,11 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         8. Read the latest handoff.
         9. Read the relevant record-system docs.
 
-        ## 2. Fixed role pool
+        ## 3. Fixed role pool
 
         ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
 
-        ## 3. Dispatch templates
+        ## 4. Dispatch templates
 
         ${config.roles
           .map((role) => {
@@ -1355,7 +1451,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
           })
           .join("\n\n")}
 
-        ## 4. Reuse rules
+        ## 5. Reuse rules
 
         1. Reuse the fixed roles before inventing temporary ones.
         2. Keep plans, run logs, handoffs, and memory updated after each round.
@@ -1365,7 +1461,15 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         这个文件为新的编排主线程提供可复用的启动提示词和固定角色派发模板。
 
-        ## 1. 主线程启动清单
+        ## 1. 初始化契约
+
+        把当前仓库视为已经通过 \`harness-engineer init\` 完整铺设好的 harness。
+        一个新仓库初始化后，就应当已经拥有固定子代理、配置、memory、runbook、
+        记录系统文档以及任务目录。
+
+        只有在真实发生漂移或损坏时，才去补建缺失的 harness 文件。
+
+        ## 2. 主线程启动清单
 
         1. 阅读 \`AGENTS.override.md\`。
         2. 阅读 \`docs/index.md\`。
@@ -1377,11 +1481,11 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         8. 阅读最新 handoff。
         9. 阅读相关记录系统文档。
 
-        ## 2. 固定角色池
+        ## 3. 固定角色池
 
         ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
 
-        ## 3. 派发模板
+        ## 4. 派发模板
 
         ${config.roles
           .map((role) => {
@@ -1417,7 +1521,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
           })
           .join("\n\n")}
 
-        ## 4. 复用规则
+        ## 5. 复用规则
 
         1. 在创造临时角色之前先复用固定角色。
         2. 每一轮之后都要更新计划、run log、handoff 和 memory。

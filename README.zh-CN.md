@@ -43,6 +43,8 @@ harness-engineer task new 2026-04-02-auth-debug --class B
 harness-engineer status
 ```
 
+这条 `init` 命令的目标就是一次性铺好完整的仓库内 Codex 基线：固定子代理、`.codex` 配置、长期记忆、runbook、记录系统文档以及任务目录。
+
 如果你是在当前源码仓库里本地运行：
 
 ```bash
@@ -136,6 +138,7 @@ harness-engineer init [dir] \
 - 使用 `--force` 可以覆盖受管理模板
 - 传入 `--dev-command` 时会生成 `.codex/environments/environment.toml`
 - `init` 会把 `harness-engineer` 自动加入 `devDependencies`
+- `init` 的设计目标是完整铺设基线 harness，而不仅是生成一个最小起步文件
 
 ### `task new`
 

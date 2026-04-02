@@ -45,6 +45,8 @@ harness-engineer task new 2026-04-02-auth-debug --class B
 harness-engineer status
 ```
 
+That single `init` command is intended to bootstrap the full repository-owned Codex baseline in one pass: fixed subagents, `.codex` config, durable memory, runbooks, record-system docs, and task directories.
+
 If you are running from this source repository:
 
 ```bash
@@ -138,6 +140,7 @@ Notes:
 - use `--force` to overwrite managed templates
 - `--dev-command` generates `.codex/environments/environment.toml`
 - `init` also adds `harness-engineer` to `devDependencies`
+- `init` is designed to fully scaffold the baseline harness, not just create a minimal starter file
 
 ### `task new`
 
