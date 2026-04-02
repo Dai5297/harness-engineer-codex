@@ -23,12 +23,15 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm pack
+npm info harness-engineer
 ```
 
 ## Package Metadata
 
 - `repository`, `homepage`, and `bugs` point to the live GitHub repository.
+- The published npm package points back to the same GitHub repository metadata.
 - The README documents both `pnpm dlx` and installed CLI usage.
+- The README documents GitHub-based installation as a fallback path.
 - The package description and keywords reflect the published positioning.
 
 ## Optional Nice-To-Haves

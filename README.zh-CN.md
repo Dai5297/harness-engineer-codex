@@ -5,6 +5,7 @@
 它可以在一个空白仓库里一次性生成固定角色、长期记忆、runbook、任务计划与 handoff 结构，适合团队把 AI 协作流程沉淀为仓库内真源。
 
 > 许可证：[MIT](./LICENSE)
+> npm 包地址：[harness-engineer](https://www.npmjs.com/package/harness-engineer)
 
 ## 它会生成什么
 
@@ -17,12 +18,13 @@
 
 ## 快速开始
 
-发布后推荐这样使用：
+当前版本已经发布到 npm，最快的初始化方式是：
 
 ```bash
 pnpm dlx harness-engineer@latest init . \
   --preset generic-software \
   --project-name "Acme Platform" \
+  --language bilingual \
   --yes
 
 harness-engineer task new 2026-04-02-auth-debug --class B
@@ -41,9 +43,9 @@ node dist/cli.js init . \
   --yes
 ```
 
-## 直接从 npm 使用
+## 安装方式
 
-用户不需要 clone 当前仓库，也可以直接从 npm 初始化项目：
+### 直接从 npm 运行
 
 ```bash
 pnpm dlx harness-engineer@latest init . \
@@ -53,10 +55,17 @@ pnpm dlx harness-engineer@latest init . \
   --yes
 ```
 
-也可以先安装到项目里：
+### 安装到现有项目中
 
 ```bash
 npm install -D harness-engineer
+npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
+```
+
+### 直接从 GitHub 安装
+
+```bash
+npm install -D git+https://github.com/Dai5297/harness-engineer-codex.git
 npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
 ```
 

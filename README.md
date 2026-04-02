@@ -7,6 +7,7 @@ It turns the "harness as files" pattern into a reusable npm package: fixed role 
 中文说明见 [README.zh-CN.md](./README.zh-CN.md)。
 
 > License: [MIT](./LICENSE)
+> Package: [`harness-engineer` on npm](https://www.npmjs.com/package/harness-engineer)
 
 ## What It Creates
 
@@ -19,12 +20,13 @@ It turns the "harness as files" pattern into a reusable npm package: fixed role 
 
 ## Quick Start
 
-For published package usage:
+The package is now published on npm. The fastest way to scaffold a new repository is:
 
 ```bash
 pnpm dlx harness-engineer@latest init . \
   --preset generic-software \
   --project-name "Acme Platform" \
+  --language bilingual \
   --yes
 
 harness-engineer task new 2026-04-02-auth-debug --class B
@@ -43,9 +45,9 @@ node dist/cli.js init . \
   --yes
 ```
 
-## Install From npm
+## Install Options
 
-Without cloning this repository, users can initialize a project directly from npm:
+### From npm without installing globally
 
 ```bash
 pnpm dlx harness-engineer@latest init . \
@@ -55,10 +57,17 @@ pnpm dlx harness-engineer@latest init . \
   --yes
 ```
 
-Or install it into a project first:
+### Install into an existing project
 
 ```bash
 npm install -D harness-engineer
+npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
+```
+
+### Install directly from GitHub
+
+```bash
+npm install -D git+https://github.com/Dai5297/harness-engineer-codex.git
 npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
 ```
 
