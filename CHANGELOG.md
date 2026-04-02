@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4
+
+- made the generated root Codex session orchestration-only by default, with repository writes delegated to write-capable subagents
+- set the scaffolded root `.codex/config.toml` sandbox to `read-only` and enabled `workspace-write` explicitly for builder and tester agents
+- updated generated English and Chinese collaboration guides to make the root-session delegation policy explicit
+
 ## 0.2.3
 
 - fixed the published `harness` bin entrypoint so npm global installs work correctly through symlinked or shimmed executable paths
