@@ -1,26 +1,16 @@
 import { join } from "node:path";
 
-import type { TaskArchiveOptions, TaskNewOptions } from "../types/harness.js";
+import type { HarnessLanguage, TaskArchiveOptions, TaskNewOptions } from "../types/harness.js";
+import {
+  DEFAULT_ACTIVE_TASK_REQUIRED_SECTIONS,
+  getActiveTaskRequiredSections,
+  getCompletionSections,
+} from "./template-language.js";
 import { loadHarnessConfig } from "./config-service.js";
 import { ensureTrailingNewline } from "../utils/format.js";
 import { movePath, pathExists, readTextFile, writeTextFile } from "../utils/fs.js";
 
-export const ACTIVE_TASK_REQUIRED_SECTIONS = [
-  "## Status",
-  "## Goal",
-  "## Scope",
-  "## Work Plan",
-  "## Validation Plan",
-];
-
-const COMPLETION_SECTIONS = [
-  "## Result",
-  "## Actual Changes",
-  "## Verified",
-  "## Unverified",
-  "## Residual Risks",
-  "## Follow-Up",
-];
+export const ACTIVE_TASK_REQUIRED_SECTIONS = DEFAULT_ACTIVE_TASK_REQUIRED_SECTIONS;
 
 const TASK_TEMPLATE_TOKENS = {
   taskSlug: "__TASK_SLUG__",
@@ -61,14 +51,14 @@ export async function archiveTask(options: TaskArchiveOptions): Promise<void> {
   }
 
   const currentPlan = await readTextFile(activePlanPath);
-  const archivedPlan = ensureCompletionSections(currentPlan);
+  const archivedPlan = ensureCompletionSections(currentPlan, config.language);
 
   await writeTextFile(activePlanPath, archivedPlan);
   await movePath(activePlanPath, completedPlanPath);
 }
 
-export function findMissingTaskSections(planContents: string): string[] {
-  return ACTIVE_TASK_REQUIRED_SECTIONS.filter((section) => !planContents.includes(section));
+export function findMissingTaskSections(planContents: string, language: HarnessLanguage = "en"): string[] {
+  return getActiveTaskRequiredSections(language).filter((section) => !planContents.includes(section));
 }
 
 function renderTaskPlanTemplate(
@@ -98,10 +88,10 @@ async function loadTaskPlanTemplate(cwd: string, relativeTemplatePath: string): 
   return DEFAULT_TASK_TEMPLATE;
 }
 
-function ensureCompletionSections(planContents: string): string {
+function ensureCompletionSections(planContents: string, language: HarnessLanguage): string {
   let next = ensureTrailingNewline(planContents).trimEnd();
 
-  for (const section of COMPLETION_SECTIONS) {
+  for (const section of getCompletionSections(language)) {
     if (!next.includes(section)) {
       next = `${next}\n\n${section}\n`;
     }

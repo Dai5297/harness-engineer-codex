@@ -14,6 +14,8 @@ describe("workspace inspection", () => {
       expect(inspection.exists).toBe(false);
       expect(inspection.isEmpty).toBe(true);
       expect(inspection.needsConfirmation).toBe(false);
+      expect(inspection.workspaceKind).toBe("empty");
+      expect(inspection.hasProjectSignals).toBe(false);
     });
   });
 
@@ -29,6 +31,9 @@ describe("workspace inspection", () => {
       expect(inspection.isEmpty).toBe(false);
       expect(inspection.needsConfirmation).toBe(true);
       expect(inspection.entries).toEqual(["README.md"]);
+      expect(inspection.workspaceKind).toBe("existing");
+      expect(inspection.hasProjectSignals).toBe(true);
+      expect(inspection.projectSignals).toEqual(["README.md"]);
     });
   });
 

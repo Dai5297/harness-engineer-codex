@@ -180,4 +180,46 @@ describe("task lifecycle", () => {
       ).rejects.toThrow(/does not exist in active plans/i);
     });
   });
+
+  it("supports bilingual execution plans without breaking status or archive flows", async () => {
+    await withTempDir(async (dir) => {
+      await initProject({
+        cwd: dir,
+        projectName: "Acme Platform",
+        preset: "generic-software",
+        packageVersion: "0.1.0",
+        language: "bilingual",
+      });
+
+      await createTask({
+        cwd: dir,
+        slug: "bilingual-task",
+        taskClass: "A",
+      });
+
+      const activePlanPath = join(dir, "docs", "exec-plans", "active", "bilingual-task.md");
+      const activePlan = await readFile(activePlanPath, "utf8");
+      expect(activePlan).toContain("## English");
+      expect(activePlan).toContain("## 中文");
+      expect(activePlan).toContain("## Validation Plan");
+      expect(activePlan).toContain("## 验证计划");
+
+      const healthyStatus = await getStatus(dir);
+      expect(healthyStatus.inconsistentTasks).toEqual([]);
+
+      await archiveTask({
+        cwd: dir,
+        slug: "bilingual-task",
+      });
+
+      const archivedPlan = await readFile(
+        join(dir, "docs", "exec-plans", "completed", "bilingual-task.md"),
+        "utf8",
+      );
+      expect(archivedPlan).toContain("## Result");
+      expect(archivedPlan).toContain("## 结果");
+      expect(archivedPlan).toContain("## Residual Risks");
+      expect(archivedPlan).toContain("## 剩余风险");
+    });
+  });
 });

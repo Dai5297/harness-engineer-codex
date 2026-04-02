@@ -1,13 +1,13 @@
 import { join } from "node:path";
 
-import type { GeneratedFile } from "../types/harness.js";
+import type { GeneratedFile, ManagedWriteMode } from "../types/harness.js";
 import { pathExists, writeTextFile } from "../utils/fs.js";
 
 export async function writeGeneratedFiles(
   targetDir: string,
   files: GeneratedFile[],
   options: {
-    force: boolean;
+    mode: ManagedWriteMode;
     dryRun: boolean;
     alwaysWritePaths?: ReadonlySet<string>;
   },
@@ -25,7 +25,7 @@ export async function writeGeneratedFiles(
     const exists = await pathExists(filePath);
     const shouldAlwaysWrite = options.alwaysWritePaths?.has(file.path) ?? false;
 
-    if (exists && !options.force && !shouldAlwaysWrite) {
+    if (exists && options.mode === "create-missing" && !shouldAlwaysWrite) {
       skippedFiles.push(file.path);
       continue;
     }

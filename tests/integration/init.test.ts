@@ -147,7 +147,31 @@ describe("initProject", () => {
       });
 
       const agentsContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
-      expect(agentsContent).toContain("Preferred collaboration language: `zh`");
+      expect(agentsContent).toContain("## 目的");
+      expect(agentsContent).toContain("偏好协作语言：`中文`");
+    });
+  });
+
+  it("renders bilingual documents when requested", async () => {
+    await withTempDir(async (dir) => {
+      await initProject({
+        cwd: dir,
+        projectName: "Acme Platform",
+        preset: "generic-software",
+        packageVersion: "0.1.0",
+        language: "bilingual",
+      });
+
+      const agentsContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
+      expect(agentsContent).toContain("<!-- Generated in bilingual mode");
+      expect(agentsContent).toContain("## English");
+      expect(agentsContent).toContain("## 中文");
+      expect(agentsContent).toContain("# Acme Platform Codex Collaboration Guide");
+      expect(agentsContent).toContain("# Acme Platform Codex 协作指南");
+
+      const docsIndex = await readFile(join(dir, "docs", "index.md"), "utf8");
+      expect(docsIndex).toContain("# Acme Platform Documentation Index");
+      expect(docsIndex).toContain("# Acme Platform 文档索引");
     });
   });
 });

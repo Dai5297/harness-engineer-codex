@@ -13,7 +13,9 @@ describe("CLI smoke flow", () => {
       const { io, output } = createTestIo();
 
       await expect(runCli(["help"], dir, io)).resolves.toBe(0);
-      expect(output.join("\n")).toContain("harness-engineer init");
+      expect(output.join("\n")).toContain("harness init");
+      expect(output.join("\n")).toContain("harness enrich");
+      expect(output.join("\n")).not.toContain("harness-engineer init");
     });
   });
 

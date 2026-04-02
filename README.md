@@ -35,31 +35,41 @@ The CLI is intentionally document-first:
 
 ## Quick start
 
-Without a global install:
+Install the package globally so `harness` is available on your PATH:
 
 ```bash
-pnpm dlx harness-engineer@latest init . --project-name "Acme Platform" --yes
+npm install -g harness-engineer
 ```
 
-Or inside an existing repo:
+Create a fresh harness baseline in an empty project:
 
 ```bash
-npx harness-engineer init . --project-name "Acme Platform" --yes
+harness init . --project-name "Acme Platform" --yes
+```
+
+Enrich an existing repository with harness docs plus a Codex-powered background pass:
+
+```bash
+harness enrich . --yes
 ```
 
 Then open a tracked task:
 
 ```bash
-harness-engineer task new 2026-04-02-auth-debug --class B
-harness-engineer status
+harness task new 2026-04-02-auth-debug --class B
+harness status
 ```
+
+If `harness` is not found after global install, make sure your npm global bin directory is on PATH.
+
+`harness enrich` requires a working local Codex CLI. If Codex is installed but not authenticated yet, run `codex login` before retrying.
 
 ## CLI
 
 ### `init`
 
 ```bash
-harness-engineer init [target-directory] \
+harness init [target-directory] \
   [--project-name <name>] \
   [--preset generic-software] \
   [--language en|zh|bilingual] \
@@ -72,14 +82,36 @@ Behavior:
 
 - `target-directory` defaults to `.`
 - `--project-name` is optional; the CLI infers it from the directory name when omitted
+- `--language en` generates English docs, `--language zh` generates Chinese docs, and `--language bilingual` emits English + Chinese in the same markdown files
 - `--yes` skips the non-empty directory confirmation
 - `--force` overwrites managed harness files
 - `--dry-run` prints the plan without writing files
 
+### `enrich`
+
+```bash
+harness enrich [target-directory] \
+  [--project-name <name>] \
+  [--preset generic-software] \
+  [--language en|zh|bilingual] \
+  [--force] \
+  [--yes] \
+  [--dry-run]
+```
+
+Behavior:
+
+- `enrich` is for existing repositories, not empty directories
+- the CLI first creates any missing harness baseline files
+- `--language` controls whether the refreshed docs are English, Chinese, or bilingual
+- Codex is then invoked with a repo-scoped prompt to update the background docs
+- `--force` lets the CLI refresh managed harness files before Codex runs
+- `--dry-run` skips both file writes and the Codex invocation
+
 ### `task new`
 
 ```bash
-harness-engineer task new <slug> --class A|B|C
+harness task new <slug> --class A|B|C
 ```
 
 Creates an execution plan from `docs/exec-plans/template.md` and writes it to `docs/exec-plans/active/<slug>.md`.
@@ -87,7 +119,7 @@ Creates an execution plan from `docs/exec-plans/template.md` and writes it to `d
 ### `task archive`
 
 ```bash
-harness-engineer task archive <slug>
+harness task archive <slug>
 ```
 
 Moves a plan from `docs/exec-plans/active/` to `docs/exec-plans/completed/` and appends completion sections if needed.
@@ -95,7 +127,7 @@ Moves a plan from `docs/exec-plans/active/` to `docs/exec-plans/completed/` and 
 ### `status`
 
 ```bash
-harness-engineer status
+harness status
 ```
 
 Reports:

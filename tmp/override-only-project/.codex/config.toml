@@ -1,6 +1,0 @@
-# Project-scoped Codex subagent settings.
-# Keep global subagent limits here so the repo can recommend a predictable delegation shape.
-
-[agents]
-max_threads = 6
-max_depth = 1

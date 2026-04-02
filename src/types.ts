@@ -1,8 +1,14 @@
 export type {
   BuildConfigOptions,
+  CodexAvailabilityResult,
+  CodexExecOptions,
+  CodexRunResult,
+  EnrichOptions,
+  EnrichResult,
   GeneratedFile,
   HarnessConfig,
   HarnessLanguage,
+  ManagedWriteMode,
   HarnessPathsConfig,
   HarnessRoleConfig,
   InitOptions,
@@ -12,7 +18,9 @@ export type {
   TaskArchiveOptions,
   TaskClass,
   TaskNewOptions,
+  TemplateLocale,
   TemplateContext,
   TemplateContextValue,
+  WorkspaceKind,
 } from "./types/harness.js";
 export type { CliIo, ParsedArgs } from "./types/cli.js";

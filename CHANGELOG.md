@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+
+- renamed the published CLI binary to `harness` while keeping the npm package name `harness-engineer`
+- added `harness enrich` with local `codex exec` orchestration for existing repositories
+- added real `zh` and `bilingual` document generation, including bilingual execution plan support
+- removed tracked smoke-test output under `tmp/` and now ignore future temp scaffolds
+
 ## 0.2.1
 
 - clarified that `harness-engineer init` bootstraps the full repository-owned Codex baseline in one command

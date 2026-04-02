@@ -1,6 +1,6 @@
 # {{projectName}} Codex Collaboration Guide
 
-Preferred collaboration language: `{{language}}`
+Preferred collaboration language: `{{languageDisplay}}`
 
 ## Purpose
 

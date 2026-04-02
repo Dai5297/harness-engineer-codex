@@ -4,6 +4,7 @@ export {
   buildHarnessDependencyVersion,
   createDefaultPackageJson,
   loadHarnessConfig,
+  loadOptionalHarnessConfig,
   readOwnPackageVersion,
   serializeHarnessConfig,
 } from "./core/config-service.js";

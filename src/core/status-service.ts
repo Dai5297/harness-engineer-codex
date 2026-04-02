@@ -33,7 +33,7 @@ export async function getStatus(cwd: string): Promise<StatusResult> {
   for (const slug of activeTasks) {
     const planPath = join(cwd, config.paths.plansActiveDir, `${slug}.md`);
     const planContents = await readTextFile(planPath);
-    const missing = findMissingTaskSections(planContents);
+    const missing = findMissingTaskSections(planContents, config.language);
 
     if (missing.length > 0) {
       inconsistentTasks.push({ slug, missing });

@@ -1,6 +1,11 @@
 export type HarnessLanguage = "en" | "zh" | "bilingual";
+export type TemplateLocale = "en" | "zh";
 
 export type TaskClass = "A" | "B" | "C";
+
+export type WorkspaceKind = "empty" | "existing" | "scaffolded";
+
+export type ManagedWriteMode = "create-missing" | "force-managed";
 
 export interface HarnessPathsConfig {
   docsRoot: string;
@@ -72,6 +77,48 @@ export interface InitResult {
   dryRun: boolean;
 }
 
+export interface EnrichOptions {
+  cwd: string;
+  targetDir?: string;
+  projectName?: string;
+  preset?: string;
+  language?: HarnessLanguage;
+  yes?: boolean;
+  force?: boolean;
+  dryRun?: boolean;
+  packageVersion?: string;
+  codexCommand?: string;
+  codexEnv?: NodeJS.ProcessEnv;
+}
+
+export interface CodexAvailabilityResult {
+  available: boolean;
+  command: string;
+  reason?: string;
+  suggestedNextStep: string;
+}
+
+export interface CodexExecOptions {
+  cwd: string;
+  prompt: string;
+  command?: string;
+  env?: NodeJS.ProcessEnv;
+}
+
+export interface CodexRunResult {
+  command: string;
+  args: string[];
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+  lastMessage?: string;
+}
+
+export interface EnrichResult extends InitResult {
+  workspaceKind: WorkspaceKind;
+  codex: CodexRunResult | null;
+}
+
 export interface TaskNewOptions {
   cwd: string;
   slug: string;
@@ -102,5 +149,5 @@ export interface PresetDefinition {
   templateDirectory: string;
   paths: HarnessPathsConfig;
   roles: HarnessRoleConfig[];
-  buildTemplateContext(config: HarnessConfig): TemplateContext;
+  buildTemplateContext(config: HarnessConfig, locale: TemplateLocale): TemplateContext;
 }

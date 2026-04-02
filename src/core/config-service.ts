@@ -29,7 +29,16 @@ export function buildHarnessConfig(options: BuildConfigOptions): HarnessConfig {
 export async function loadHarnessConfig(cwd: string): Promise<HarnessConfig> {
   const configPath = join(cwd, HARNESS_CONFIG_FILE);
   if (!(await pathExists(configPath))) {
-    throw new Error(`Missing ${HARNESS_CONFIG_FILE} in ${cwd}. Run "harness-engineer init" first.`);
+    throw new Error(`Missing ${HARNESS_CONFIG_FILE} in ${cwd}. Run "harness init" first.`);
+  }
+
+  return readJsonFile<HarnessConfig>(configPath);
+}
+
+export async function loadOptionalHarnessConfig(cwd: string): Promise<HarnessConfig | undefined> {
+  const configPath = join(cwd, HARNESS_CONFIG_FILE);
+  if (!(await pathExists(configPath))) {
+    return undefined;
   }
 
   return readJsonFile<HarnessConfig>(configPath);

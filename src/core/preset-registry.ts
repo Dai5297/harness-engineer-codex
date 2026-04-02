@@ -2,7 +2,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { genericSoftwarePreset } from "../presets/generic-software.js";
-import type { PresetDefinition } from "../types/harness.js";
+import type { PresetDefinition, TemplateLocale } from "../types/harness.js";
 import { listFilesRecursivelySync } from "../utils/fs.js";
 
 const presetMap = new Map<string, PresetDefinition>([
@@ -22,6 +22,11 @@ export function getPreset(key: string): PresetDefinition {
 export function resolveTemplateDirectory(templateDirectory: string): string {
   const currentDirectory = dirname(fileURLToPath(import.meta.url));
   return resolve(currentDirectory, "../../templates", templateDirectory);
+}
+
+export function resolveLocalizedTemplateDirectory(templateDirectory: string, locale: TemplateLocale): string {
+  const currentDirectory = dirname(fileURLToPath(import.meta.url));
+  return resolve(currentDirectory, "../../templates/_locales", templateDirectory, locale);
 }
 
 export function listManagedTemplatePaths(preset: PresetDefinition): string[] {
