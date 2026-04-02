@@ -26,7 +26,7 @@ describe("agentadmin-codex preset", () => {
 
       expect(extractFixedRoles(generatedAgents)).toEqual(agentAdminCodexFixture.fixedRoles);
       expect(extractHarnessPaths(generatedIndex)).toEqual(
-        expect.arrayContaining(agentAdminCodexFixture.indexRequiredPaths),
+        expect.arrayContaining([...agentAdminCodexFixture.indexRequiredPaths]),
       );
       expect(extractFixedRoles(generatedBootstrap)).toEqual(agentAdminCodexFixture.fixedRoles);
       expect(generatedBootstrap).not.toContain("/Users/");
