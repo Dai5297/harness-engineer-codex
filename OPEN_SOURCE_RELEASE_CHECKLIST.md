@@ -2,6 +2,12 @@
 
 Use this before publishing the package to npm or pushing release updates to GitHub.
 
+## Versioning
+
+- `package.json` version is bumped before publishing.
+- `CHANGELOG.md` contains a short entry for the release.
+- The published version is higher than the current npm `latest` tag.
+
 ## Licensing And Positioning
 
 - The repository is described as open source.
@@ -19,11 +25,9 @@ Use this before publishing the package to npm or pushing release updates to GitH
 
 ```bash
 pnpm install
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm pack
+pnpm release:check
 npm info harness-engineer
+npm publish --access public
 ```
 
 ## Package Metadata
@@ -33,9 +37,10 @@ npm info harness-engineer
 - The README documents both `pnpm dlx` and installed CLI usage.
 - The README documents GitHub-based installation as a fallback path.
 - The package description and keywords reflect the published positioning.
+- `main`, `types`, and `exports` all resolve to published `dist/` files.
 
 ## Optional Nice-To-Haves
 
 - Add CI for `pnpm typecheck`, `pnpm test`, and `pnpm build`.
 - Add badges to the README.
-- Add a changelog and release notes template.
+- Add automated release notes or git tag automation.

@@ -6,6 +6,7 @@
 
 > 许可证：[MIT](./LICENSE)
 > npm 包地址：[harness-engineer](https://www.npmjs.com/package/harness-engineer)
+> 更新记录：[CHANGELOG.md](./CHANGELOG.md)
 
 ## 为什么现在是这个结构
 

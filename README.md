@@ -8,6 +8,7 @@ It packages the "harness as files" pattern into a reusable npm package: fixed ro
 
 > License: [MIT](./LICENSE)
 > Package: [`harness-engineer` on npm](https://www.npmjs.com/package/harness-engineer)
+> Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
 ## Why This Shape
 

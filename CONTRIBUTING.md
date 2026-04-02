@@ -22,6 +22,7 @@ pnpm build
 - Do not commit `node_modules/`, `dist/`, `coverage/`, or ad hoc smoke directories.
 - Keep presets manifest-driven rather than scattering hardcoded special cases.
 - Keep the package MIT-licensed and npm-installable without requiring a repository clone for end users.
+- Keep published package metadata aligned with generated `dist/` output.
 
 ## Contribution Licensing
 
@@ -36,4 +37,5 @@ pnpm test
 pnpm test:coverage
 pnpm build
 pnpm pack
+pnpm release:check
 ```

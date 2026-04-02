@@ -1,14 +1,17 @@
 {
   "name": "harness-engineer",
-  "version": "0.1.0",
-  "description": "Open-source Codex harness scaffolding CLI for repository-owned orchestration workflows.",
+  "version": "0.2.0",
+  "description": "Open-source Codex-first scaffolding CLI for file-first harness engineering workflows.",
   "keywords": [
     "codex",
     "cli",
     "scaffold",
+    "harness",
     "agent",
     "orchestration",
-    "workflow"
+    "workflow",
+    "documentation",
+    "plans"
   ],
   "homepage": "https://github.com/Dai5297/harness-engineer-codex#readme",
   "bugs": {
@@ -22,10 +25,14 @@
   "author": "dai",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./package.json": "./package.json"
   },
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "harness-engineer": "dist/cli.js"
   },
@@ -36,6 +43,7 @@
     "dist",
     "README.md",
     "README.zh-CN.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
@@ -43,6 +51,7 @@
     "clean": "rm -rf dist coverage",
     "prepack": "pnpm build",
     "prepublishOnly": "pnpm test && pnpm build",
+    "release:check": "pnpm typecheck && pnpm test && pnpm build && pnpm pack",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit"
