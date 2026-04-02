@@ -31,13 +31,17 @@ describe("config helpers", () => {
       cwd: "/tmp/project",
       projectName: "Acme Platform",
       presetKey: "generic-software",
-      language: "bilingual",
+      language: "zh",
     });
 
     expect(config.projectName).toBe("Acme Platform");
-    expect(config.language).toBe("bilingual");
+    expect(config.language).toBe("zh");
     expect(config.managedFiles).toContain("AGENTS.override.md");
-    expect(config.managedFiles).toContain("docs/runbooks/main-thread-bootstrap.md");
-    expect(config.managedFiles).toContain("docs/exec-plans/active/README.md");
+    expect(config.managedFiles).not.toContain("AGENTS.md");
+    expect(config.managedFiles).toContain("ARCHITECTURE.md");
+    expect(config.managedFiles).toContain(".codex/config.toml");
+    expect(config.managedFiles).toContain(".codex/agents/reviewer.toml");
+    expect(config.managedFiles).toContain("docs/exec-plans/template.md");
+    expect(config.managedFiles).toContain("docs/product-specs/template.md");
   });
 });

@@ -1,146 +1,80 @@
 # harness-engineer
 
-`harness-engineer` is an open-source Codex-first scaffolding CLI for repository-owned orchestration workflows.
+`harness-engineer` is a small npm CLI that scaffolds a repository-owned harness engineering baseline.
 
-It packages the "harness as files" pattern into a reusable npm package: fixed roles, durable memory, runbooks, record-system docs, and execution-plan artifacts can all be generated into a blank repository with one command.
+Instead of stuffing every rule into one giant prompt, it generates an `AGENTS.override.md` plus a durable `docs/` structure that future agents can read from the repo itself:
+
+- `AGENTS.override.md`
+- `.codex/config.toml`
+- `.codex/agents/*.toml`
+- `ARCHITECTURE.md`
+- `docs/design-docs/...`
+- `docs/exec-plans/...`
+- `docs/generated/db-schema.md`
+- `docs/product-specs/...`
+- `docs/references/...`
+- `docs/DESIGN.md`
+- `docs/FRONTEND.md`
+- `docs/PLANS.md`
+- `docs/PRODUCT_SENSE.md`
+- `docs/QUALITY_SCORE.md`
+- `docs/RELIABILITY.md`
+- `docs/SECURITY.md`
 
 中文说明见 [README.zh-CN.md](./README.zh-CN.md)。
 
-> License: [MIT](./LICENSE)
-> Package: [`harness-engineer` on npm](https://www.npmjs.com/package/harness-engineer)
-> Changelog: [CHANGELOG.md](./CHANGELOG.md)
+## Why this shape
 
-## Why This Shape
+The CLI is intentionally document-first:
 
-The default preset is now aligned with OpenAI's harness engineering article:
+- project-scoped Codex subagents are kept in-repo instead of living only in a personal config
+- `AGENTS.override.md` is the single Codex bootstrap and collaboration guide
+- architecture and product knowledge live in dedicated files
+- multi-step work gets a durable execution plan
+- reviewers and testers can rely on repo context, not disappearing chat history
 
-- keep the Codex entrypoint short
-- treat repository docs as the system of record
-- keep execution plans versioned and durable
-- give agents progressively deeper context instead of one giant instruction file
+## Quick start
 
-The article uses `AGENTS.md` conceptually. This package generates `AGENTS.override.md` because that is the Codex entrypoint this tool targets.
-
-## What It Creates
-
-- `AGENTS.override.md` as the short Codex collaboration map
-- `.codex/config.toml` and fixed role files under `.codex/agents/`
-- durable memory under `.codex/memory/`
-- `ARCHITECTURE.md` plus record-system docs under `docs/design-docs/`, `docs/product-specs/`, `docs/generated/`, and `docs/references/`
-- execution-plan folders under `docs/exec-plans/` and run artifacts under `logs/codex/`
-- a machine-readable `harness-engineer.config.json`
-
-## Quick Start
-
-The package is published on npm. The fastest way to scaffold a new repository is:
+Without a global install:
 
 ```bash
-pnpm dlx harness-engineer@latest init . \
-  --preset generic-software \
-  --project-name "Acme Platform" \
-  --language bilingual \
-  --yes
+pnpm dlx harness-engineer@latest init . --project-name "Acme Platform" --yes
+```
 
+Or inside an existing repo:
+
+```bash
+npx harness-engineer init . --project-name "Acme Platform" --yes
+```
+
+Then open a tracked task:
+
+```bash
 harness-engineer task new 2026-04-02-auth-debug --class B
 harness-engineer status
 ```
-
-That single `init` command is intended to bootstrap the full repository-owned Codex baseline in one pass: fixed subagents, `.codex` config, durable memory, runbooks, record-system docs, and task directories.
-
-If you are running from this source repository:
-
-```bash
-pnpm install
-pnpm build
-
-node dist/cli.js init . \
-  --preset generic-software \
-  --project-name "Acme Platform" \
-  --language bilingual \
-  --yes
-```
-
-## Install Options
-
-### From npm without installing globally
-
-```bash
-pnpm dlx harness-engineer@latest init . \
-  --preset generic-software \
-  --project-name "Acme Platform" \
-  --language bilingual \
-  --yes
-```
-
-### Install into an existing project
-
-```bash
-npm install -D harness-engineer
-npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
-```
-
-### Install directly from GitHub
-
-```bash
-npm install -D git+https://github.com/Dai5297/harness-engineer-codex.git
-npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
-```
-
-## Presets
-
-### `generic-software`
-
-The default preset for Codex-driven software repositories.
-
-Fixed roles:
-
-- `architect-backend`
-- `architect-frontend`
-- `runtime-integrations`
-- `product-ui`
-- `reviewer`
-- `qa-guard`
-
-Record-system docs are organized like this:
-
-- `ARCHITECTURE.md`
-- `docs/design-docs/`
-- `docs/product-specs/`
-- `docs/generated/`
-- `docs/references/`
-- `docs/exec-plans/`
-
-## Language Modes
-
-`init` supports three output modes:
-
-- `en` for English-only harness files
-- `zh` for Chinese-localized harness files
-- `bilingual` for bilingual harness docs, including `AGENTS.override.md`
-
-Canonical file paths stay unchanged across all three modes.
 
 ## CLI
 
 ### `init`
 
 ```bash
-harness-engineer init [dir] \
-  --preset <preset> \
-  --project-name <name> \
+harness-engineer init [target-directory] \
+  [--project-name <name>] \
+  [--preset generic-software] \
   [--language en|zh|bilingual] \
-  [--dev-command "<cmd>"] \
   [--force] \
-  [--yes]
+  [--yes] \
+  [--dry-run]
 ```
 
-Notes:
+Behavior:
 
-- generates files only when missing by default
-- use `--force` to overwrite managed templates
-- `--dev-command` generates `.codex/environments/environment.toml`
-- `init` also adds `harness-engineer` to `devDependencies`
-- `init` is designed to fully scaffold the baseline harness, not just create a minimal starter file
+- `target-directory` defaults to `.`
+- `--project-name` is optional; the CLI infers it from the directory name when omitted
+- `--yes` skips the non-empty directory confirmation
+- `--force` overwrites managed harness files
+- `--dry-run` prints the plan without writing files
 
 ### `task new`
 
@@ -148,11 +82,7 @@ Notes:
 harness-engineer task new <slug> --class A|B|C
 ```
 
-Creates:
-
-- `docs/exec-plans/active/<slug>.md`
-- `logs/codex/active/<slug>/run.md`
-- `logs/codex/active/<slug>/handoff.md`
+Creates an execution plan from `docs/exec-plans/template.md` and writes it to `docs/exec-plans/active/<slug>.md`.
 
 ### `task archive`
 
@@ -160,7 +90,7 @@ Creates:
 harness-engineer task archive <slug>
 ```
 
-Moves the task from active to completed and appends completion sections to the plan if needed.
+Moves a plan from `docs/exec-plans/active/` to `docs/exec-plans/completed/` and appends completion sections if needed.
 
 ### `status`
 
@@ -173,32 +103,33 @@ Reports:
 - active tasks
 - missing managed files
 - drifted managed files
-- inconsistent task artifacts
+- execution plans missing required sections
 
-## Local Development
+## Generated role model
+
+The default scaffold documents five collaboration roles:
+
+- Orchestrator
+- Planner
+- Builder
+- Reviewer
+- Tester
+
+These roles are documented in the generated repository files and also emitted as project-scoped Codex custom agents under `.codex/agents/`, so explicit subagent delegation can use the same vocabulary as the docs.
+
+## Local development
 
 ```bash
 pnpm install
-pnpm test
+pnpm check
 pnpm test:coverage
 pnpm build
 ```
 
-The package is intentionally source-first. `dist/`, `coverage/`, and `node_modules/` are generated locally and are not meant to be committed.
+## Package contents
 
-## Testing Strategy
+The published package ships compiled code from `dist/` plus the filesystem templates under `templates/`.
 
-- unit tests for rendering, config helpers, and preset selection
-- integration tests for init, task lifecycle, CLI smoke flow, and status drift detection
-- independence checks to ensure generated output does not retain external-project identifiers or machine-local paths
+## License
 
-## Repository Layout
-
-```text
-src/      source code for the CLI and generators
-tests/    unit and integration tests
-```
-
-## Open-Source Release Notes
-
-Before publishing updates, review [OPEN_SOURCE_RELEASE_CHECKLIST.md](./OPEN_SOURCE_RELEASE_CHECKLIST.md).
+[MIT](./LICENSE)

@@ -9,7 +9,7 @@ import { archiveTask, createTask } from "../../src/tasks.js";
 import { withTempDir } from "../helpers/temp-dir.js";
 
 describe("task lifecycle", () => {
-  it("creates active plan, run, and handoff files for a new task", async () => {
+  it("creates an active execution plan for a new task", async () => {
     await withTempDir(async (dir) => {
       await initProject({
         cwd: dir,
@@ -25,8 +25,9 @@ describe("task lifecycle", () => {
       });
 
       await expect(stat(join(dir, "docs", "exec-plans", "active", "demo-task.md"))).resolves.toBeDefined();
-      await expect(stat(join(dir, "logs", "codex", "active", "demo-task", "run.md"))).resolves.toBeDefined();
-      await expect(stat(join(dir, "logs", "codex", "active", "demo-task", "handoff.md"))).resolves.toBeDefined();
+      const plan = await readFile(join(dir, "docs", "exec-plans", "active", "demo-task.md"), "utf8");
+      expect(plan).toContain("Task class: `B`");
+      expect(plan).toContain("## Validation Plan");
     });
   });
 
@@ -82,12 +83,12 @@ describe("task lifecycle", () => {
       expect(archivedPlan).toContain("## Result");
       expect(archivedPlan).toContain("## Residual Risks");
       await expect(
-        stat(join(dir, "logs", "codex", "completed", "demo-task", "handoff.md")),
-      ).resolves.toBeDefined();
+        stat(join(dir, "docs", "exec-plans", "active", "demo-task.md")),
+      ).rejects.toThrow();
     });
   });
 
-  it("reports active tasks and missing artifacts in status output", async () => {
+  it("reports active tasks and healthy managed files in status output", async () => {
     await withTempDir(async (dir) => {
       await initProject({
         cwd: dir,
@@ -120,16 +121,16 @@ describe("task lifecycle", () => {
       });
 
       await writeFile(join(dir, "AGENTS.override.md"), "# Drifted\n", "utf8");
-      await rm(join(dir, "docs", "runbooks", "qa-agent.md"));
+      await rm(join(dir, "docs", "SECURITY.md"));
 
       const status = await getStatus(dir);
 
       expect(status.driftedManagedFiles).toContain("AGENTS.override.md");
-      expect(status.missingManagedFiles).toContain("docs/runbooks/qa-agent.md");
+      expect(status.missingManagedFiles).toContain("docs/SECURITY.md");
     });
   });
 
-  it("flags inconsistent active tasks when log artifacts are missing", async () => {
+  it("flags inconsistent active tasks when required sections are missing", async () => {
     await withTempDir(async (dir) => {
       await initProject({
         cwd: dir,
@@ -143,14 +144,20 @@ describe("task lifecycle", () => {
         slug: "demo-task",
         taskClass: "B",
       });
-      await rm(join(dir, "logs", "codex", "active", "demo-task", "handoff.md"));
+      await writeFile(join(dir, "docs", "exec-plans", "active", "demo-task.md"), "# demo-task\n", "utf8");
 
       const status = await getStatus(dir);
 
       expect(status.inconsistentTasks).toEqual([
         {
           slug: "demo-task",
-          missing: ["logs/codex/active/demo-task/handoff.md"],
+          missing: [
+            "## Status",
+            "## Goal",
+            "## Scope",
+            "## Work Plan",
+            "## Validation Plan",
+          ],
         },
       ]);
     });

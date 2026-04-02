@@ -1,7 +1,7 @@
 {
   "name": "harness-engineer",
   "version": "0.2.1",
-  "description": "Open-source Codex-first scaffolding CLI for file-first harness engineering workflows.",
+  "description": "Scaffold repository-owned harness engineering docs, execution plans, and agent collaboration guides.",
   "keywords": [
     "codex",
     "cli",
@@ -11,7 +11,9 @@
     "orchestration",
     "workflow",
     "documentation",
-    "plans"
+    "plans",
+    "typescript",
+    "harness-engineering"
   ],
   "homepage": "https://github.com/Dai5297/harness-engineer-codex#readme",
   "bugs": {
@@ -41,6 +43,7 @@
   },
   "files": [
     "dist",
+    "templates",
     "README.md",
     "README.zh-CN.md",
     "CHANGELOG.md",
@@ -48,10 +51,11 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "clean": "rm -rf dist coverage",
+    "check": "pnpm typecheck && pnpm test",
+    "clean": "node -e \"const fs = require('node:fs'); for (const path of ['dist', 'coverage']) fs.rmSync(path, { recursive: true, force: true });\"",
     "prepack": "pnpm build",
-    "prepublishOnly": "pnpm test && pnpm build",
-    "release:check": "pnpm typecheck && pnpm test && pnpm build && pnpm pack",
+    "prepublishOnly": "pnpm check && pnpm build",
+    "release:check": "pnpm check && pnpm test:coverage && pnpm build && pnpm pack",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit"
