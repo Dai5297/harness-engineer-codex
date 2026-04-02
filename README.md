@@ -1,12 +1,18 @@
 # harness-engineer
 
+> A repository-first CLI for durable AI collaboration context.
+
+![Node >=20](https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+![Docs: en zh bilingual](https://img.shields.io/badge/docs-en%20%7C%20zh%20%7C%20bilingual-4f46e5)
+
 `harness-engineer` is an npm CLI for bootstrapping repository-owned AI collaboration docs.
 
 It installs a `harness` command that creates a durable, file-first working context for Codex and other agents, so the important project knowledge lives in the repo instead of a giant prompt or a disappearing chat thread.
 
 [中文说明](./README.zh-CN.md)
 
-## Why use it
+## Why This Exists
 
 Most AI-assisted repos start the same way:
 
@@ -23,7 +29,7 @@ Most AI-assisted repos start the same way:
 - `docs/` for product, design, security, reliability, references, and execution plans
 - `harness-engineer.config.json` so future commands can understand the scaffolded repo
 
-## Features
+## Highlights
 
 - Supports both empty projects and existing repositories
 - Generates a consistent harness baseline with real files, not hardcoded string blobs
@@ -54,7 +60,7 @@ harness --version
 
 If `harness` is not found after install, make sure your npm global bin directory is on PATH.
 
-## Quick Start
+## Getting Started
 
 ### 1. Initialize a new project
 
@@ -84,7 +90,7 @@ harness task new 2026-04-02-auth-debug --class B
 harness status
 ```
 
-## What gets generated
+## Scaffold Overview
 
 The default `generic-software` preset creates a structure like this:
 
@@ -117,7 +123,7 @@ The default `generic-software` preset creates a structure like this:
     └── references/
 ```
 
-## Command Reference
+## CLI Reference
 
 ### `harness init`
 
@@ -216,7 +222,7 @@ Before Codex is invoked, the CLI prepares the repo with the managed baseline. Th
 
 That makes it suitable for retrofitting an existing codebase without turning the command into a code-modifying migration tool.
 
-## Generated role model
+## Collaboration Roles
 
 The default scaffold documents five collaboration roles:
 
@@ -228,7 +234,7 @@ The default scaffold documents five collaboration roles:
 
 Those roles appear both in the generated docs and in project-scoped Codex custom agents under `.codex/agents/`, so explicit subagent delegation can reuse the same vocabulary as the repo docs.
 
-## Example workflow
+## Example Repository Workflow
 
 ```bash
 # initialize a new repo
@@ -244,7 +250,7 @@ harness status
 harness enrich . --yes
 ```
 
-## Further Reading
+## Official References
 
 If you want to go deeper on the underlying Codex workflows this project is built around, these official OpenAI resources are the most relevant starting points:
 
@@ -277,7 +283,7 @@ harness enrich . --yes
 
 That is expected. By default, managed files are only created when missing. Use `--force` only when you explicitly want to refresh the harness-managed baseline.
 
-## Local development
+## Development
 
 ```bash
 pnpm install
@@ -292,7 +298,7 @@ Useful release check:
 pnpm release:check
 ```
 
-## Package contents
+## Published Package
 
 The published package includes:
 
@@ -302,10 +308,16 @@ The published package includes:
 
 ## Contributing
 
-Contributions are welcome. If you want to improve the scaffold shape, command UX, or template quality, start with [CONTRIBUTING.md](./CONTRIBUTING.md).
+Contributions are welcome. If you want to improve the scaffold shape, command UX, template quality, or documentation flow, start with [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-[MIT](./LICENSE)
+Released under the [MIT](./LICENSE) license.
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/Dai5297/harness-engineer-codex?style=social)](https://github.com/Dai5297/harness-engineer-codex/stargazers)
+## Community / Project Activity
+
+If this project is useful in your workflow, starring the repository is a simple way to support it and follow its progress over time.
+
+| Signal | Activity |
+| --- | --- |
+| GitHub star history | [![Star History Chart](https://api.star-history.com/svg?repos=Dai5297/harness-engineer-codex&type=Date)](https://www.star-history.com/#Dai5297/harness-engineer-codex&Date) |

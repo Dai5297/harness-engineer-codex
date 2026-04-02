@@ -1,12 +1,18 @@
 # harness-engineer
 
+> 一个以仓库为中心、面向长期 AI 协作上下文的 CLI。
+
+![Node >=20](https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+![Docs: en zh bilingual](https://img.shields.io/badge/docs-en%20%7C%20zh%20%7C%20bilingual-4f46e5)
+
 `harness-engineer` 是一个用于初始化仓库级 AI 协作文档的 npm CLI。
 
 安装后会提供 `harness` 命令，用来在仓库里建立一套持久、file-first 的工作上下文，让 Codex 和其他 agent 依赖仓库文件协作，而不是依赖一个越来越长的提示词或一段会消失的聊天记录。
 
 [English README](./README.md)
 
-## 为什么要用它
+## 为什么会有这个项目
 
 很多 AI 辅助开发仓库都会遇到同样的问题：
 
@@ -23,7 +29,7 @@
 - `docs/` 记录产品、设计、安全、可靠性、参考资料和执行计划
 - `harness-engineer.config.json` 让后续 CLI 命令理解当前仓库的 harness 配置
 
-## 功能特性
+## 核心亮点
 
 - 同时支持空项目初始化和已有仓库补全
 - 生成真实文件模板，而不是把 markdown 大段硬编码进 TypeScript
@@ -54,7 +60,7 @@ harness --version
 
 如果安装后仍然找不到 `harness`，通常是 npm global bin 目录还没有加入 PATH。
 
-## 快速开始
+## 开始使用
 
 ### 1. 初始化一个新项目
 
@@ -84,7 +90,7 @@ harness task new 2026-04-02-auth-debug --class B
 harness status
 ```
 
-## 会生成什么
+## 脚手架总览
 
 默认的 `generic-software` preset 会生成类似这样的结构：
 
@@ -117,7 +123,7 @@ harness status
     └── references/
 ```
 
-## 命令说明
+## CLI 命令参考
 
 ### `harness init`
 
@@ -216,7 +222,7 @@ harness status
 
 因此它更适合“给现有代码库补文档背景”，而不是“做一条会改代码的迁移命令”。
 
-## 默认角色模型
+## 协作角色模型
 
 默认脚手架会文档化五个协作角色：
 
@@ -228,7 +234,7 @@ harness status
 
 这些角色既会出现在生成的文档里，也会生成到 `.codex/agents/` 下作为项目级 Codex custom agents，这样显式 subagent 委派时可以直接复用同一套词汇。
 
-## 典型工作流
+## 仓库工作流示例
 
 ```bash
 # 初始化一个新仓库
@@ -244,7 +250,7 @@ harness status
 harness enrich . --yes
 ```
 
-## 延伸阅读
+## 官方参考资料
 
 如果你想进一步理解这个项目背后的 Codex 工作方式，下面这些 OpenAI 官方资料最值得先看：
 
@@ -277,7 +283,7 @@ harness enrich . --yes
 
 这是正常情况。默认模式下，CLI 只会创建缺失的受管理文件。只有在你明确传入 `--force` 时，才会刷新 harness 管理的基线文档。
 
-## 本地开发
+## 开发与验证
 
 ```bash
 pnpm install
@@ -292,7 +298,7 @@ pnpm build
 pnpm release:check
 ```
 
-## 发布包内容
+## npm 发布内容
 
 发布到 npm 的包包含：
 
@@ -300,12 +306,18 @@ pnpm release:check
 - `templates/` 下的 scaffold 模板
 - `README.md`、`README.zh-CN.md`、`CHANGELOG.md` 等包级文档
 
-## 贡献
+## 贡献与协作
 
-欢迎贡献。如果你想改进 scaffold 结构、命令体验或模板质量，可以先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+欢迎贡献。如果你想改进 scaffold 结构、命令体验、模板质量或文档流程，可以先阅读 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
-## License
+## 许可证
 
-[MIT](./LICENSE)
+本项目基于 [MIT](./LICENSE) 许可证发布。
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/Dai5297/harness-engineer-codex?style=social)](https://github.com/Dai5297/harness-engineer-codex/stargazers)
+## 社区 / 项目活跃度
+
+如果这个项目对你的工作流有帮助，给仓库点一个 Star 是支持项目、同时持续关注项目演进的最直接方式。
+
+| 信号 | 活跃度 |
+| --- | --- |
+| GitHub Star 历史趋势 | [![Star History Chart](https://api.star-history.com/svg?repos=Dai5297/harness-engineer-codex&type=Date)](https://www.star-history.com/#Dai5297/harness-engineer-codex&Date) |

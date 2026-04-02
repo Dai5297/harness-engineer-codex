@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+- fixed the published `harness` bin entrypoint so npm global installs work correctly through symlinked or shimmed executable paths
+- added an integration test that executes the built CLI through a symlink, matching how npm global bins invoke the package
+- refreshed the English and Chinese READMEs with stronger open-source project framing, improved section titles, and a community activity section
+
 ## 0.2.2
 
 - renamed the published CLI binary to `harness` while keeping the npm package name `harness-engineer`

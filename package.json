@@ -1,6 +1,6 @@
 {
   "name": "harness-engineer",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Scaffold repository-owned harness engineering docs, execution plans, and agent collaboration guides.",
   "keywords": [
     "codex",
