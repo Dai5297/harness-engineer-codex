@@ -172,12 +172,13 @@ const localizedCopy = {
   en: {
     subagentUsage: [
       "Project-scoped custom agents live under `.codex/agents/` and are meant for explicit subagent delegation.",
-      "Use `.codex/config.toml` to keep `[agents]` runtime settings like `max_threads` and `max_depth` with the repo.",
+      "Use `.codex/config.toml` to keep `[agents]` runtime settings like `max_threads` and `max_depth` with the repo, and keep the root session read-only by default.",
       "Keep each custom agent narrow, opinionated, and aligned to one main responsibility.",
       "Prefer read-only agents for planning and review; use write-capable agents only when implementation is the goal.",
     ],
     collaborationSequence: [
       "Read `AGENTS.override.md`, `ARCHITECTURE.md`, and `docs/index.md` before planning implementation details.",
+      "Treat the root session as the coordinator: delegate implementation, review, and validation instead of doing them directly.",
       "Use `docs/exec-plans/active/` for any task that spans multiple decisions, roles, or review rounds.",
       "Update repository-owned documents in the same change whenever contracts, behavior, or constraints move.",
       "Keep Reviewer and Tester independent from Builder when validating risky changes.",
@@ -220,12 +221,13 @@ const localizedCopy = {
   zh: {
     subagentUsage: [
       "项目级自定义 agent 放在 `.codex/agents/` 下，用于显式 subagent 委派。",
-      "使用 `.codex/config.toml` 把 `max_threads`、`max_depth` 这类 `[agents]` 运行参数与仓库一起维护。",
+      "使用 `.codex/config.toml` 把 `max_threads`、`max_depth` 这类 `[agents]` 运行参数与仓库一起维护，并让根会话默认保持只读。",
       "每个自定义 agent 都应保持职责单一、观点明确，并聚焦一个主要责任。",
       "规划与评审优先使用只读 agent；只有在明确要实现代码时才使用可写 agent。",
     ],
     collaborationSequence: [
       "在规划实现前先阅读 `AGENTS.override.md`、`ARCHITECTURE.md` 与 `docs/index.md`。",
+      "把根会话视为协调者：实现、评审和验证优先委派给对应子代理，而不是自己直接执行。",
       "只要任务跨越多个决策、多个角色或多轮评审，就应在 `docs/exec-plans/active/` 中维护执行计划。",
       "当契约、行为或约束发生变化时，要在同一变更中同步更新仓库内文档。",
       "验证高风险改动时，尽量保持 Reviewer 和 Tester 独立于 Builder。",

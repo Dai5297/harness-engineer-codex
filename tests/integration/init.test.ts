@@ -33,6 +33,8 @@ describe("initProject", () => {
 
       const overrideContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
       expect(overrideContent).toContain("Codex Collaboration Guide");
+      expect(overrideContent).toContain("## Root session policy");
+      expect(overrideContent).toContain("The root Codex session is orchestration-only.");
       expect(overrideContent).toContain("Orchestrator");
       expect(overrideContent).toContain("Planner");
       expect(overrideContent).toContain("Builder");
@@ -41,13 +43,21 @@ describe("initProject", () => {
       expect(overrideContent).toContain(".codex/agents/orchestrator.toml");
 
       const codexConfig = await readFile(join(dir, ".codex", "config.toml"), "utf8");
+      expect(codexConfig).toContain('sandbox_mode = "read-only"');
       expect(codexConfig).toContain("[agents]");
       expect(codexConfig).toContain("max_threads = 6");
       expect(codexConfig).toContain("max_depth = 1");
 
+      const builderAgent = await readFile(join(dir, ".codex", "agents", "builder.toml"), "utf8");
+      expect(builderAgent).toContain('name = "builder"');
+      expect(builderAgent).toContain('sandbox_mode = "workspace-write"');
+
       const reviewerAgent = await readFile(join(dir, ".codex", "agents", "reviewer.toml"), "utf8");
       expect(reviewerAgent).toContain('name = "reviewer"');
       expect(reviewerAgent).toContain("developer_instructions");
+
+      const testerAgent = await readFile(join(dir, ".codex", "agents", "tester.toml"), "utf8");
+      expect(testerAgent).toContain('sandbox_mode = "workspace-write"');
 
       const packageJson = JSON.parse(
         await readFile(join(dir, "package.json"), "utf8"),
@@ -149,6 +159,8 @@ describe("initProject", () => {
       const agentsContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
       expect(agentsContent).toContain("## 目的");
       expect(agentsContent).toContain("偏好协作语言：`中文`");
+      expect(agentsContent).toContain("## 主线程策略");
+      expect(agentsContent).toContain("根 Codex 会话只负责编排");
     });
   });
 

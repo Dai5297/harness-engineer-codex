@@ -6,6 +6,15 @@ Preferred collaboration language: `{{languageDisplay}}`
 
 This repository uses file-first harness engineering. Agents should recover context from repository documents before relying on chat history or ad hoc prompts.
 
+## Root session policy
+
+The root Codex session is orchestration-only.
+
+1. Read repository context and decide delegation order.
+2. Use subagents for planning, implementation, review, and validation work.
+3. Do not write repository files or implement code directly from the root session.
+4. If no suitable write-capable subagent is available, stop and report the blocker instead of implementing in the root session.
+
 ## Read first
 
 1. `.codex/config.toml`
@@ -45,7 +54,7 @@ Project-scoped agent files:
 
 ## Working agreements
 
-1. Start with the smallest document or code change that makes the task clearer.
+1. Start by delegating to the smallest suitable subagent; do not let the root session become the implementation agent.
 2. Update `ARCHITECTURE.md`, specs, or plans in the same change when behavior or constraints move.
 3. Treat `docs/generated/` as local evidence, not as a place for hand-written guesses.
 4. Keep review findings and validation results explicit; do not hide risk in narrative prose.
