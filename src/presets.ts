@@ -601,8 +601,49 @@ function buildCodexConfig(projectName: string): string {
   `);
 }
 
-function buildActivePlansReadme(): string {
+function splitMarkdownTitle(document: string): { title: string; body: string } {
+  const normalized = dedent(document).trim();
+  const [firstLine = "", ...restLines] = normalized.split("\n");
+  const title = firstLine.startsWith("# ") ? firstLine.slice(2).trim() : "Document";
+  const body = firstLine.startsWith("# ") ? restLines.join("\n").trim() : normalized;
+
+  return { title, body };
+}
+
+function localizeMarkdownPair(
+  language: HarnessConfig["language"],
+  englishDocument: string,
+  chineseDocument: string,
+  bilingualTitle?: string,
+): string {
+  if (language === "en") {
+    return englishDocument;
+  }
+
+  if (language === "zh") {
+    return chineseDocument;
+  }
+
+  const english = splitMarkdownTitle(englishDocument);
+  const chinese = splitMarkdownTitle(chineseDocument);
+
   return dedent(`
+    # ${bilingualTitle ?? `${english.title} / ${chinese.title}`}
+
+    ## 中文
+
+    ${chinese.body}
+
+    ---
+
+    ## English
+
+    ${english.body}
+  `);
+}
+
+function buildActivePlansReadme(language: HarnessConfig["language"]): string {
+  const english = dedent(`
     # Active Plans
 
     This directory stores long-running plans for work that is still in progress.
@@ -658,10 +699,69 @@ function buildActivePlansReadme(): string {
     2. Confirm the handoff and memory files were updated.
     3. Archive the plan and matching logs.
   `);
+
+  const chinese = dedent(`
+    # 进行中的计划
+
+    这里存放仍在执行中的长周期任务计划。
+
+    ## 1. 什么时候需要创建计划
+
+    只要满足以下任意条件，就应该创建计划：
+
+    - 任务会跨越多个回合或多个线程。
+    - 任务需要多个固定角色协作。
+    - 主线程需要在当前会话之外保留长期上下文。
+    - 任务属于 B 类或 C 类。
+
+    ## 2. 文件命名
+
+    推荐格式：
+
+    - \`YYYY-MM-DD-<task-slug>.md\`
+
+    ## 3. 最小模板
+
+    \`\`\`md
+    # <任务标题>
+
+    ## Background
+
+    ## Goal
+
+    ## Scope
+
+    ## Out Of Scope
+
+    ## Truth Sources
+
+    ## Current Decisions
+
+    ## Work Breakdown
+
+    ## Validation Plan
+
+    ## Risks And Blockers
+
+    ## Required Roles
+
+    ## Required Memory Or Handoff Updates
+    \`\`\`
+
+    ## 4. 完成前检查
+
+    在移动到 \`../completed/\` 之前：
+
+    1. 记录结果和剩余风险。
+    2. 确认 handoff 与 memory 已更新。
+    3. 归档计划和对应日志。
+  `);
+
+  return localizeMarkdownPair(language, english, chinese, "Active Plans / 进行中的计划");
 }
 
-function buildCompletedPlansReadme(): string {
-  return dedent(`
+function buildCompletedPlansReadme(language: HarnessConfig["language"]): string {
+  const english = dedent(`
     # Completed Plans
 
     This directory archives long-running plans that reached a terminal state.
@@ -691,10 +791,43 @@ function buildCompletedPlansReadme(): string {
     ## Follow-Up
     \`\`\`
   `);
+
+  const chinese = dedent(`
+    # 已完成计划
+
+    这里归档已经到达终态的长周期任务计划。
+
+    ## 1. 归档前确认
+
+    - active 计划已经补充最终结果摘要。
+    - 对应的 run log 与 handoff 已存在于 \`logs/codex/\`。
+    - 需要长期保留的结论已同步到 \`.codex/memory/\`。
+    - 必需的真源文档更新已经完成，或已明确延期。
+
+    ## 2. 最小完成段落
+
+    移动到这里之前，请至少补齐以下段落：
+
+    \`\`\`md
+    ## Result
+
+    ## Actual Changes
+
+    ## Verified
+
+    ## Unverified
+
+    ## Residual Risks
+
+    ## Follow-Up
+    \`\`\`
+  `);
+
+  return localizeMarkdownPair(language, english, chinese, "Completed Plans / 已完成计划");
 }
 
-function buildActiveLogsReadme(): string {
-  return dedent(`
+function buildActiveLogsReadme(language: HarnessConfig["language"]): string {
+  const english = dedent(`
     # Active Codex Logs
 
     This directory records run logs and handoffs for in-progress tasks.
@@ -747,10 +880,66 @@ function buildActiveLogsReadme(): string {
     ## Suggested Next Role
     \`\`\`
   `);
+
+  const chinese = dedent(`
+    # 进行中的 Codex 日志
+
+    这里记录进行中任务的 run log 与 handoff。
+
+    ## 1. 推荐结构
+
+    \`\`\`text
+    logs/codex/active/
+      <task-slug>/
+        run.md
+        handoff.md
+        artifacts/
+    \`\`\`
+
+    ## 2. \`run.md\` 最小模板
+
+    \`\`\`md
+    # <任务标题>
+
+    ## Context
+
+    ## Timeline
+
+    ## Commands
+
+    ## Verification Notes
+
+    ## Open Questions
+    \`\`\`
+
+    ## 3. \`handoff.md\` 最小模板
+
+    \`\`\`md
+    # <任务标题> Handoff
+
+    ## Current Goal
+
+    ## Completed
+
+    ## In Progress
+
+    ## Key Files
+
+    ## Key Decisions
+
+    ## Risks
+
+    ## Suggested Next Steps
+
+    ## Suggested Next Role
+    \`\`\`
+  `);
+
+  return localizeMarkdownPair(language, english, chinese, "Active Codex Logs / 进行中的 Codex 日志");
 }
 
-function buildCompletedLogsReadme(): string {
-  return dedent(`
+function buildCompletedLogsReadme(language: HarnessConfig["language"]): string {
+  const english = dedent(`
     # Completed Codex Logs
 
     This directory archives run logs for completed or paused tasks.
@@ -767,6 +956,26 @@ function buildCompletedLogsReadme(): string {
         artifacts/
     \`\`\`
   `);
+
+  const chinese = dedent(`
+    # 已归档的 Codex 日志
+
+    这里归档已经完成或暂停的任务日志。
+
+    ## 1. 归档结构
+
+    保持与 \`../active/\` 相同的目录形状：
+
+    \`\`\`text
+    logs/codex/completed/
+      <task-slug>/
+        run.md
+        handoff.md
+        artifacts/
+    \`\`\`
+  `);
+
+  return localizeMarkdownPair(language, english, chinese, "Completed Codex Logs / 已归档的 Codex 日志");
 }
 
 function buildEnvironmentToml(projectName: string, devCommand: string): string {
@@ -786,7 +995,7 @@ function buildEnvironmentToml(projectName: string, devCommand: string): string {
 }
 
 function buildGenericAgentsReadme(config: HarnessConfig): string {
-  return dedent(`
+  const english = dedent(`
     # Fixed Agent Pool
 
     This directory is the repository-owned source of truth for the fixed ${config.projectName}
@@ -812,10 +1021,38 @@ function buildGenericAgentsReadme(config: HarnessConfig): string {
     4. The latest matching handoff
     5. The current plan and source-of-truth docs
   `);
+
+  const chinese = dedent(`
+    # 固定角色池
+
+    这里是 ${config.projectName} 固定 Codex 角色池的仓库内真源。
+
+    ## 作用
+
+    - 让同一组窄职责子代理可以跨线程复用。
+    - 把角色上下文保存在仓库文件里，而不是仅依赖聊天历史。
+    - 给主线程一个稳定入口，在派发前先加载角色边界。
+
+    ## 固定角色
+
+    ${relativePathList(config.roles.map((role) => `${config.paths.codexAgentsDir}/${role.key}.toml`))}
+
+    ## 派发顺序
+
+    派发角色时，按以下顺序读取：
+
+    1. \`.codex/agents/<role>.toml\`
+    2. \`docs/runbooks/<role-runbook>.md\`
+    3. \`.codex/memory/<domain>.md\`
+    4. 最新对应 handoff
+    5. 当前计划和真源文档
+  `);
+
+  return localizeMarkdownPair(config.language, english, chinese, "Fixed Agent Pool / 固定角色池");
 }
 
 function buildMemoryRegistry(config: HarnessConfig): string {
-  return dedent(`
+  const english = dedent(`
     # Codex Memory Registry
 
     This directory stores durable memory for ${config.projectName}. It should keep stable
@@ -842,10 +1079,39 @@ function buildMemoryRegistry(config: HarnessConfig): string {
     | \`runtime.md\` | Stable runtime, integration, and safety boundaries |
     | \`decisions.md\` | Cross-domain durable decisions and shared operating rules |
   `);
+
+  const chinese = dedent(`
+    # Codex Memory 注册表
+
+    这里存放 ${config.projectName} 的长期记忆，用来在未来线程中优先恢复稳定事实，而不是依赖聊天历史。
+
+    ## 1. 读取顺序
+
+    主线程和固定角色应按以下顺序读取：
+
+    1. 本文件
+    2. \`../config.toml\`
+    3. \`../agents/README.md\`
+    4. 对应的 \`../agents/<role>.toml\`
+    5. 对应领域 memory
+    6. 最新 handoff
+    7. active 计划
+
+    ## 2. Memory 文件
+
+    | 文件 | 用途 |
+    | --- | --- |
+    | \`backend.md\` | 稳定的后端边界、重复出现的风险和阅读顺序 |
+    | \`frontend.md\` | 稳定的前端边界、路由规则和 UI 约束 |
+    | \`runtime.md\` | 稳定的运行时、集成与安全边界 |
+    | \`decisions.md\` | 跨领域的长期决策和协作规则 |
+  `);
+
+  return localizeMarkdownPair(config.language, english, chinese, "Codex Memory Registry / Codex Memory 注册表");
 }
 
 function buildGenericDocsIndex(config: HarnessConfig): string {
-  return dedent(`
+  const english = dedent(`
     # ${config.projectName} Documentation Index
 
     This file is the Codex harness entrypoint for the repository. It links source-of-truth docs,
@@ -880,6 +1146,43 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
     - \`../logs/codex/active/\`
     - \`../logs/codex/completed/\`
   `);
+
+  const chinese = dedent(`
+    # ${config.projectName} 文档索引
+
+    这个文件是仓库内 Codex harness 的入口，负责把真源文档、固定角色 runbook、长期 memory 和任务产物串起来。
+
+    ## 1. 优先读取顺序
+
+    主线程默认顺序：
+
+    1. \`../AGENTS.md\`
+    2. 如果存在，再读 \`../AGENTS.override.md\`
+    3. 本文件
+    4. \`../.codex/config.toml\`
+    5. \`../.codex/agents/README.md\`
+    6. \`../.codex/memory/registry.md\`
+    7. 对应 runbook
+    8. 最新 handoff
+    9. 最后才看具体实现代码
+
+    ## 2. 真源文档
+
+    ${config.truthSources.map((source) => `- \`../${source.path}\` — ${source.title}`).join("\n")}
+
+    ## 3. Harness 自有文件
+
+    - \`../.codex/config.toml\`
+    - \`../.codex/agents/\`
+    - \`../.codex/memory/\`
+    - \`./runbooks/\`
+    - \`./plans/active/\`
+    - \`./plans/completed/\`
+    - \`../logs/codex/active/\`
+    - \`../logs/codex/completed/\`
+  `);
+
+  return localizeMarkdownPair(config.language, english, chinese, `${config.projectName} Documentation Index / ${config.projectName} 文档索引`);
 }
 
 function buildGenericAgentsMd(config: HarnessConfig): string {
@@ -938,9 +1241,49 @@ function buildGenericAgentsMd(config: HarnessConfig): string {
   `);
 }
 
-function buildGenericMemoryFiles(): Record<string, string> {
+function buildGenericAgentsOverride(config: HarnessConfig): string {
+  const english = dedent(`
+    # AGENTS.override.md
+
+    This repository is initialized with an explicit language preference.
+
+    ## Language mode
+
+    - Preferred harness language: \`${config.language}\`
+    - Keep the canonical file paths unchanged.
+    - Respect \`docs/index.md\`, runbooks, memory, plans, and logs as repository truth.
+
+    ## Output preference
+
+    - If the task is conversational or documentation-heavy, respond in Chinese when helpful.
+    - Keep code, file paths, CLI commands, and schema keys in their canonical form.
+    - Preserve English headings when they are part of established templates unless the task requires otherwise.
+  `);
+
+  const chinese = dedent(`
+    # AGENTS.override.md
+
+    当前仓库使用了明确的语言偏好设置。
+
+    ## 语言模式
+
+    - 当前偏好语言：\`${config.language}\`
+    - 保持标准文件路径不变。
+    - 继续以 \`docs/index.md\`、runbook、memory、plan 和 log 作为仓库真源。
+
+    ## 输出偏好
+
+    - 对话类或文档类任务在有帮助时优先使用中文。
+    - 代码、文件路径、CLI 命令和 schema key 保持其标准写法。
+    - 如果模板本身已经约定英文标题，除非任务明确要求，否则不要随意改动。
+  `);
+
+  return localizeMarkdownPair(config.language, english, chinese, "AGENTS.override.md / 语言覆盖");
+}
+
+function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<string, string> {
   return {
-    ".codex/memory/backend.md": dedent(`
+    ".codex/memory/backend.md": localizeMarkdownPair(language, dedent(`
       # Backend Memory
 
       ## Stable position
@@ -954,8 +1297,22 @@ function buildGenericMemoryFiles(): Record<string, string> {
       - Letting current code shape override the documented boundary.
       - Changing API semantics without updating truth sources.
       - Hiding permission or audit checks inside scattered helpers.
-    `),
-    ".codex/memory/frontend.md": dedent(`
+    `), dedent(`
+      # 后端 Memory
+
+      ## 稳定立场
+
+      - 后端负责长期稳定的服务边界和治理语义。
+      - 合同与权限变化必须先对齐真源文档。
+      - 共享代码应保持聚焦，避免意外吸收领域逻辑。
+
+      ## 常见风险
+
+      - 让当前代码形态反过来覆盖文档边界。
+      - 改了 API 语义却没有更新真源文档。
+      - 把权限或审计检查散落进各种 helper。
+    `), "Backend Memory / 后端 Memory"),
+    ".codex/memory/frontend.md": localizeMarkdownPair(language, dedent(`
       # Frontend Memory
 
       ## Stable position
@@ -969,8 +1326,22 @@ function buildGenericMemoryFiles(): Record<string, string> {
       - Inventing unconfirmed fields in page code.
       - Hardcoding permission meaning in UI components.
       - Letting visual polish rewrite information architecture.
-    `),
-    ".codex/memory/runtime.md": dedent(`
+    `), dedent(`
+      # 前端 Memory
+
+      ## 稳定立场
+
+      - 产品 UI 默认不是营销站，也不是聊天壳。
+      - 路由归属、权限规则和适配层边界都应写在仓库文档里。
+      - 共享组件不应吸收领域语义。
+
+      ## 常见风险
+
+      - 在页面代码里发明未确认字段。
+      - 在 UI 组件里硬编码权限含义。
+      - 用视觉优化改写了信息架构。
+    `), "Frontend Memory / 前端 Memory"),
+    ".codex/memory/runtime.md": localizeMarkdownPair(language, dedent(`
       # Runtime Memory
 
       ## Stable position
@@ -984,8 +1355,22 @@ function buildGenericMemoryFiles(): Record<string, string> {
       - Hardcoding tool behavior inside orchestration code.
       - Mixing governance ownership into execution endpoints.
       - Changing event semantics without updating validation docs.
-    `),
-    ".codex/memory/decisions.md": dedent(`
+    `), dedent(`
+      # 运行时 Memory
+
+      ## 稳定立场
+
+      - Runtime 和集成负责编排安全，不负责产品治理。
+      - 预览、正式执行和副作用规则必须保持明确。
+      - 事件或协议变化在发布前必须先对齐真源文档。
+
+      ## 常见风险
+
+      - 在编排代码里硬编码工具行为。
+      - 把治理归属混进执行端点。
+      - 修改事件语义但没更新验证文档。
+    `), "Runtime Memory / 运行时 Memory"),
+    ".codex/memory/decisions.md": localizeMarkdownPair(language, dedent(`
       # Durable Decisions
 
       ## Current baseline
@@ -994,7 +1379,16 @@ function buildGenericMemoryFiles(): Record<string, string> {
       - Long-running work must leave plan, run-log, handoff, and memory traces.
       - Fixed roles should be reused before creating temporary roles.
       - Main-thread orchestration should preserve source-of-truth precedence over code drift.
-    `),
+    `), dedent(`
+      # 长期决策
+
+      ## 当前基线
+
+      - 仓库协作以文件为先，而不是以聊天历史为先。
+      - 长周期工作必须留下计划、运行日志、handoff 和 memory 痕迹。
+      - 在创建临时角色之前，应优先复用固定角色。
+      - 主线程编排应始终让真源文档优先于代码漂移。
+    `), "Durable Decisions / 长期决策"),
   };
 }
 
@@ -1006,7 +1400,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
   return [
     {
       path: "docs/runbooks/codex-main-thread.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # Codex Main Thread Runbook
 
         This runbook constrains the single orchestration thread for ${config.projectName}.
@@ -1042,11 +1436,47 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         - \`../../docs/plans/active/<task-slug>.md\`
         - \`../../logs/codex/active/<task-slug>/run.md\`
         - \`../../logs/codex/active/<task-slug>/handoff.md\`
-      `),
+      `), dedent(`
+        # Codex 主线程 Runbook
+
+        这个 runbook 约束 ${config.projectName} 的单一编排主线程。
+        主线程负责协同工作、保留上下文，并整合固定角色的输出。
+
+        ## 1. 开始前先读
+
+        1. \`../../AGENTS.md\`
+        2. 如果存在，再读 \`../../AGENTS.override.md\`
+        3. \`../index.md\`
+        4. \`../../.codex/config.toml\`
+        5. \`../../.codex/agents/README.md\`
+        6. \`./main-thread-bootstrap.md\`
+        7. \`../../.codex/memory/registry.md\`
+        8. 相关领域 memory
+        9. 最新 handoff
+        10. 相关真源文档
+
+        ## 2. 固定职责
+
+        - 任务分级
+        - 定义范围和验证方式
+        - 选择固定角色
+        - 维护计划、run log 和 handoff
+        - 汇总风险和真源更新
+
+        ## 3. 固定角色池
+
+        ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
+
+        ## 4. 任务产物位置
+
+        - \`../../docs/plans/active/<task-slug>.md\`
+        - \`../../logs/codex/active/<task-slug>/run.md\`
+        - \`../../logs/codex/active/<task-slug>/handoff.md\`
+      `), "Codex Main Thread Runbook / Codex 主线程 Runbook"),
     },
     {
       path: "docs/runbooks/main-thread-bootstrap.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # Main Thread Bootstrap
 
         This file gives a new orchestration main thread a reusable startup prompt and
@@ -1110,11 +1540,74 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         1. Reuse the fixed roles before inventing temporary ones.
         2. Keep plans, run logs, handoffs, and memory updated after each round.
         3. Point every role at repository files before relying on chat history.
-      `),
+      `), dedent(`
+        # 主线程启动说明
+
+        这个文件为新的编排主线程提供可复用的启动提示词和固定角色派发模板。
+
+        ## 1. 主线程启动清单
+
+        1. 阅读 \`AGENTS.md\`。
+        2. 如果存在，阅读 \`AGENTS.override.md\`。
+        3. 阅读 \`docs/index.md\`。
+        4. 阅读 \`.codex/config.toml\`。
+        5. 阅读 \`.codex/agents/README.md\`。
+        6. 阅读 \`docs/runbooks/codex-main-thread.md\`。
+        7. 阅读 \`.codex/memory/registry.md\`。
+        8. 阅读相关领域 memory。
+        9. 阅读最新 handoff。
+        10. 阅读相关真源文档。
+
+        ## 2. 固定角色池
+
+        ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
+
+        ## 3. 派发模板
+
+        ${config.roles
+          .map((role) => {
+            const outOfScope = role.doNot.map((item) => `- ${item}`).join("\n");
+            const readFirst = role.readFirst.map((item, index) => `${index + 1}. \`${item}\``).join("\n");
+            const output = role.defaultOutput.map((item) => `- ${item}`).join("\n");
+            const handoff = role.handoffRequired.map((item) => `- ${item}`).join("\n");
+            return dedent(`
+              ### \`${role.key}\`
+
+              \`\`\`text
+              你是 ${config.projectName} 的 \`${role.key}\` 固定角色。
+
+              Goal:
+              <在这里填写任务目标>
+
+              Scope:
+              ${role.scope.map((item) => `- ${item}`).join("\n")}
+
+              Out of scope:
+              ${outOfScope}
+
+              Read first:
+              ${readFirst}
+
+              Expected output:
+              ${output}
+
+              Handoff requirements:
+              ${handoff}
+              \`\`\`
+            `);
+          })
+          .join("\n\n")}
+
+        ## 4. 复用规则
+
+        1. 在创造临时角色之前先复用固定角色。
+        2. 每一轮之后都要更新计划、run log、handoff 和 memory。
+        3. 让每个角色先读取仓库文件，再依赖聊天历史。
+      `), "Main Thread Bootstrap / 主线程启动说明"),
     },
     {
       path: "docs/runbooks/backend-agent.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # Backend Agent Runbook
 
         This runbook serves \`architect-backend\`.
@@ -1136,11 +1629,33 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         ## 3. Handoff
 
         Record touched modules, contract impact, validation status, and the next recommended role.
-      `),
+      `), dedent(`
+        # 后端角色 Runbook
+
+        这个 runbook 服务于 \`architect-backend\`。
+
+        ## 1. 范围
+
+        - 服务模块和后端边界
+        - API、数据、权限、审计和治理约束
+        - 实现位置和后端变更顺序
+
+        ## 2. 开始前先读
+
+        1. \`../index.md\`
+        2. \`../../.codex/memory/backend.md\`
+        3. \`../../docs/source-of-truth/system-overview.md\`
+        4. \`../../docs/source-of-truth/backend-architecture.md\`
+        5. \`../../docs/source-of-truth/api-specification.md\`
+
+        ## 3. Handoff
+
+        记录受影响模块、合同影响、验证状态和建议的下一角色。
+      `), "Backend Agent Runbook / 后端角色 Runbook"),
     },
     {
       path: "docs/runbooks/frontend-agent.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # Frontend Agent Runbook
 
         This runbook serves both \`architect-frontend\` and \`${uiRole?.key ?? "product-ui"}\`.
@@ -1164,11 +1679,35 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         Architecture questions should be settled by \`architect-frontend\` before \`${uiRole?.key ?? "product-ui"}\`
         lands concrete UI changes.
-      `),
+      `), dedent(`
+        # 前端角色 Runbook
+
+        这个 runbook 同时服务 \`architect-frontend\` 和 \`${uiRole?.key ?? "product-ui"}\`。
+
+        ## 1. 共享范围
+
+        - 路由归属和产品结构
+        - 特性、组件和适配层边界
+        - 权限、租户上下文和实时交互设计
+        - 具体页面、表格、表单、详情和状态反馈
+
+        ## 2. 开始前先读
+
+        1. \`../index.md\`
+        2. \`../../.codex/memory/frontend.md\`
+        3. \`../../docs/source-of-truth/system-overview.md\`
+        4. \`../../docs/source-of-truth/frontend-architecture.md\`
+        5. \`../../docs/source-of-truth/api-specification.md\`
+
+        ## 3. 边界规则
+
+        架构问题应先由 \`architect-frontend\` 定稿，再由 \`${uiRole?.key ?? "product-ui"}\`
+        落具体 UI 改动。
+      `), "Frontend Agent Runbook / 前端角色 Runbook"),
     },
     {
       path: "docs/runbooks/runtime-agent.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # Runtime Agent Runbook
 
         This runbook serves \`${runtimeRole?.key ?? "runtime-integrations"}\`.
@@ -1187,11 +1726,30 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         4. \`../../docs/source-of-truth/backend-architecture.md\`
         5. \`../../docs/source-of-truth/api-specification.md\`
         6. \`../../docs/source-of-truth/quality-gates.md\`
-      `),
+      `), dedent(`
+        # Runtime 角色 Runbook
+
+        这个 runbook 服务于 \`${runtimeRole?.key ?? "runtime-integrations"}\`。
+
+        ## 1. 范围
+
+        - 运行时编排和集成流程
+        - 工具绑定和运行安全
+        - 事件、协议和验证边界
+
+        ## 2. 开始前先读
+
+        1. \`../index.md\`
+        2. \`../../.codex/memory/runtime.md\`
+        3. \`../../docs/source-of-truth/system-overview.md\`
+        4. \`../../docs/source-of-truth/backend-architecture.md\`
+        5. \`../../docs/source-of-truth/api-specification.md\`
+        6. \`../../docs/source-of-truth/quality-gates.md\`
+      `), "Runtime Agent Runbook / Runtime 角色 Runbook"),
     },
     {
       path: "docs/runbooks/reviewer-agent.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # Reviewer Agent Runbook
 
         This runbook serves \`reviewer\`.
@@ -1207,11 +1765,27 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         ## 2. Output rule
 
         Findings come first. If there are no findings, report residual risk and unverified paths anyway.
-      `),
+      `), dedent(`
+        # Reviewer 角色 Runbook
+
+        这个 runbook 服务于 \`reviewer\`。
+
+        ## 1. 评审顺序
+
+        1. 产品方向漂移
+        2. 边界破坏
+        3. 合同、权限和状态回归
+        4. 缺失验证
+        5. 可读性与可维护性
+
+        ## 2. 输出规则
+
+        先给 findings。如果没有 findings，也要说明剩余风险和未验证路径。
+      `), "Reviewer Agent Runbook / Reviewer 角色 Runbook"),
     },
     {
       path: "docs/runbooks/qa-agent.md",
-      content: dedent(`
+      content: localizeMarkdownPair(config.language, dedent(`
         # QA Agent Runbook
 
         This runbook serves \`qa-guard\`.
@@ -1229,7 +1803,25 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         3. the current run log and handoff
         4. \`../../docs/source-of-truth/integration-and-acceptance.md\`
         5. \`../../docs/source-of-truth/quality-gates.md\`
-      `),
+      `), dedent(`
+        # QA 角色 Runbook
+
+        这个 runbook 服务于 \`qa-guard\`。
+
+        ## 1. 范围
+
+        - 验证矩阵设计
+        - 质量门禁检查
+        - 明确区分已验证与未验证
+
+        ## 2. 开始前先读
+
+        1. \`../index.md\`
+        2. 当前计划
+        3. 当前 run log 和 handoff
+        4. \`../../docs/source-of-truth/integration-and-acceptance.md\`
+        5. \`../../docs/source-of-truth/quality-gates.md\`
+      `), "QA Agent Runbook / QA 角色 Runbook"),
     },
   ];
 }
@@ -1237,7 +1829,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 function buildGenericSourceOfTruthFiles(config: HarnessConfig): GeneratedFile[] {
   return config.truthSources.map((source) => ({
     path: source.path,
-    content: dedent(`
+    content: localizeMarkdownPair(config.language, dedent(`
       # ${source.title}
 
       ${source.summary}
@@ -1251,7 +1843,21 @@ function buildGenericSourceOfTruthFiles(config: HarnessConfig): GeneratedFile[] 
       - Fill in the current agreed behavior.
       - Record decisions before implementation drifts.
       - Link related plans, handoffs, and validation evidence.
-    `),
+    `), dedent(`
+      # ${source.title}
+
+      ${source.summary}
+
+      ## 用途
+
+      在这个领域记录 ${config.projectName} 的长期稳定真相。
+
+      ## 当前基线
+
+      - 在这里补充当前已达成一致的行为。
+      - 在实现漂移之前先记录关键决策。
+      - 关联相关计划、handoff 和验证证据。
+    `), `${source.title} / 中文说明`),
   }));
 }
 
@@ -1262,13 +1868,20 @@ function buildGenericManagedFiles(config: HarnessConfig): GeneratedFile[] {
     { path: ".codex/agents/README.md", content: buildGenericAgentsReadme(config) },
     { path: ".codex/memory/registry.md", content: buildMemoryRegistry(config) },
     { path: "docs/index.md", content: buildGenericDocsIndex(config) },
-    { path: "docs/plans/active/README.md", content: buildActivePlansReadme() },
-    { path: "docs/plans/completed/README.md", content: buildCompletedPlansReadme() },
-    { path: "logs/codex/active/README.md", content: buildActiveLogsReadme() },
-    { path: "logs/codex/completed/README.md", content: buildCompletedLogsReadme() },
+    { path: "docs/plans/active/README.md", content: buildActivePlansReadme(config.language) },
+    { path: "docs/plans/completed/README.md", content: buildCompletedPlansReadme(config.language) },
+    { path: "logs/codex/active/README.md", content: buildActiveLogsReadme(config.language) },
+    { path: "logs/codex/completed/README.md", content: buildCompletedLogsReadme(config.language) },
     ...buildGenericRunbooks(config),
     ...buildGenericSourceOfTruthFiles(config),
   ];
+
+  if (config.language !== "en") {
+    files.push({
+      path: "AGENTS.override.md",
+      content: buildGenericAgentsOverride(config),
+    });
+  }
 
   for (const role of config.roles) {
     files.push({
@@ -1277,7 +1890,7 @@ function buildGenericManagedFiles(config: HarnessConfig): GeneratedFile[] {
     });
   }
 
-  for (const [path, content] of Object.entries(buildGenericMemoryFiles())) {
+  for (const [path, content] of Object.entries(buildGenericMemoryFiles(config.language))) {
     files.push({ path, content });
   }
 
@@ -1748,10 +2361,10 @@ function buildAgentAdminManagedFiles(config: HarnessConfig): GeneratedFile[] {
     { path: ".codex/agents/README.md", content: buildAgentAdminAgentsReadme() },
     { path: ".codex/memory/registry.md", content: buildAgentAdminMemoryRegistry() },
     { path: "docs/index.md", content: buildAgentAdminDocsIndex() },
-    { path: "docs/plans/active/README.md", content: buildActivePlansReadme() },
-    { path: "docs/plans/completed/README.md", content: buildCompletedPlansReadme() },
-    { path: "logs/codex/active/README.md", content: buildActiveLogsReadme() },
-    { path: "logs/codex/completed/README.md", content: buildCompletedLogsReadme() },
+    { path: "docs/plans/active/README.md", content: buildActivePlansReadme(config.language) },
+    { path: "docs/plans/completed/README.md", content: buildCompletedPlansReadme(config.language) },
+    { path: "logs/codex/active/README.md", content: buildActiveLogsReadme(config.language) },
+    { path: "logs/codex/completed/README.md", content: buildCompletedLogsReadme(config.language) },
     ...buildAgentAdminRunbooks(config),
     ...buildAgentAdminTruthSourceFiles(config),
   ];

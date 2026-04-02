@@ -112,4 +112,36 @@ describe("initProject", () => {
       expect(combined).not.toContain("/Users/");
     });
   });
+
+  it("generates a bilingual Codex override when bilingual mode is selected", async () => {
+    await withTempDir(async (dir) => {
+      await initProject({
+        cwd: dir,
+        projectName: "Acme Platform",
+        preset: "generic-software",
+        packageVersion: "0.1.0",
+        language: "bilingual",
+      });
+
+      const agentsContent = await readFile(join(dir, "AGENTS.md"), "utf8");
+      const overrideContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
+      const indexContent = await readFile(join(dir, "docs", "index.md"), "utf8");
+      const bootstrapContent = await readFile(
+        join(dir, "docs", "runbooks", "main-thread-bootstrap.md"),
+        "utf8",
+      );
+
+      expect(agentsContent).not.toContain("## 中文");
+      expect(overrideContent).toContain("## 中文");
+      expect(overrideContent).toContain("## English");
+      expect(indexContent).toContain("## 中文");
+      expect(bootstrapContent).toContain("## English");
+
+      const config = JSON.parse(
+        await readFile(join(dir, "harness-engineer.config.json"), "utf8"),
+      ) as { language: string };
+
+      expect(config.language).toBe("bilingual");
+    });
+  });
 });

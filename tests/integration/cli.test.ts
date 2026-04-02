@@ -49,4 +49,25 @@ describe("CLI smoke flow", () => {
       await expect(runCli(["status"], dir)).resolves.toBe(0);
     });
   });
+
+  it("accepts bilingual language selection during initialization", async () => {
+    await withTempDir(async (dir) => {
+      await expect(
+        runCli(
+          [
+            "init",
+            ".",
+            "--preset",
+            "generic-software",
+            "--project-name",
+            "Acme Platform",
+            "--language",
+            "bilingual",
+            "--yes",
+          ],
+          dir,
+        ),
+      ).resolves.toBe(0);
+    });
+  });
 });

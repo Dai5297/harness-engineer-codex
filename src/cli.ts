@@ -19,7 +19,8 @@ export async function runCli(argv: string[], cwd = process.cwd()): Promise<numbe
     const targetDir = positionals[0] ?? ".";
     const projectName = asRequiredString(options["project-name"], "--project-name is required.");
     const preset = asString(options.preset) ?? "generic-software";
-    const language = asString(options.language) as HarnessLanguage | undefined;
+    const languageOption = asString(options.language);
+    const language = languageOption ? parseHarnessLanguage(languageOption) : undefined;
     const force = Boolean(options.force);
     const devCommand = asString(options["dev-command"]);
     const packageVersion = await readOwnPackageVersion(import.meta.url);
@@ -92,7 +93,7 @@ export async function runCli(argv: string[], cwd = process.cwd()): Promise<numbe
 function buildUsage(): string {
   return [
     "Usage:",
-    "  harness-engineer init [dir] --preset <preset> --project-name <name> [--yes] [--force] [--dev-command <cmd>] [--language <en|zh>]",
+    "  harness-engineer init [dir] --preset <preset> --project-name <name> [--yes] [--force] [--dev-command <cmd>] [--language <en|zh|bilingual>]",
     "  harness-engineer task new <slug> --class <A|B|C>",
     "  harness-engineer task archive <slug>",
     "  harness-engineer status",
@@ -144,6 +145,14 @@ function validateTaskClass(taskClass: string): asserts taskClass is TaskClass {
   if (!["A", "B", "C"].includes(taskClass)) {
     throw new Error(`Invalid task class "${taskClass}". Use A, B, or C.`);
   }
+}
+
+function parseHarnessLanguage(language: string): HarnessLanguage {
+  if (language === "en" || language === "zh" || language === "bilingual") {
+    return language;
+  }
+
+  throw new Error(`Invalid language "${language}". Use en, zh, or bilingual.`);
 }
 
 function writeStdout(message: string): void {

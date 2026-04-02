@@ -1,4 +1,4 @@
-export type HarnessLanguage = "en" | "zh";
+export type HarnessLanguage = "en" | "zh" | "bilingual";
 
 export type TaskClass = "A" | "B" | "C";
 

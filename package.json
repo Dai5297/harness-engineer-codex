@@ -1,7 +1,7 @@
 {
   "name": "harness-engineer",
   "version": "0.1.0",
-  "description": "Source-available Codex harness scaffolding CLI for repository-owned orchestration workflows.",
+  "description": "Open-source Codex harness scaffolding CLI for repository-owned orchestration workflows.",
   "type": "module",
   "packageManager": "pnpm@10.28.2",
   "bin": {
@@ -11,15 +11,21 @@
     "dist",
     "README.md",
     "README.zh-CN.md",
-    "LICENSE.md",
-    "LICENSE.zh-CN.md",
-    "COMMERCIAL-LICENSING.md"
+    "LICENSE"
   ],
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"
   },
-  "license": "SEE LICENSE IN LICENSE.md",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Dai5297/harness-engineer-codex.git"
+  },
+  "homepage": "https://github.com/Dai5297/harness-engineer-codex#readme",
+  "bugs": {
+    "url": "https://github.com/Dai5297/harness-engineer-codex/issues"
+  },
   "engines": {
     "node": ">=20.0.0"
   },

@@ -6,7 +6,7 @@ It turns the "harness as files" pattern into a reusable npm package: fixed role 
 
 中文说明见 [README.zh-CN.md](./README.zh-CN.md)。
 
-> Licensing note: this repository is source-available. It is free for Personal Use, and Commercial Use requires a separate paid license. See [LICENSE.md](./LICENSE.md), [LICENSE.zh-CN.md](./LICENSE.zh-CN.md), and [COMMERCIAL-LICENSING.md](./COMMERCIAL-LICENSING.md).
+> License: [MIT](./LICENSE)
 
 ## What It Creates
 
@@ -43,11 +43,24 @@ node dist/cli.js init . \
   --yes
 ```
 
-## License Model
+## Install From npm
 
-- Personal Use is free.
-- Commercial Use requires a separate written paid license from the maintainer.
-- This repository is public and source-available, but it is not OSI open source.
+Without cloning this repository, users can initialize a project directly from npm:
+
+```bash
+pnpm dlx harness-engineer@latest init . \
+  --preset generic-software \
+  --project-name "Acme Platform" \
+  --language bilingual \
+  --yes
+```
+
+Or install it into a project first:
+
+```bash
+npm install -D harness-engineer
+npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
+```
 
 ## Presets
 
@@ -87,7 +100,7 @@ It keeps the AgentAdmin-specific document layering (`dev-docs/ + spec/`) and the
 harness-engineer init [dir] \
   --preset <preset> \
   --project-name <name> \
-  [--language en|zh] \
+  [--language en|zh|bilingual] \
   [--dev-command "<cmd>"] \
   [--force] \
   [--yes]
@@ -99,6 +112,7 @@ Notes:
 - Use `--force` to overwrite managed templates.
 - `--dev-command` generates `.codex/environments/environment.toml`.
 - `init` also adds `harness-engineer` to `devDependencies`.
+- `--language bilingual` keeps the base `AGENTS.md` canonical and adds a bilingual `AGENTS.override.md` plus localized core harness docs.
 
 ### `task new`
 
@@ -157,8 +171,6 @@ src/      source code for the CLI and generators
 tests/    unit, integration, and fixture-backed compatibility tests
 ```
 
-## Public Release Notes
+## Open-Source Release Notes
 
-Before publishing this repository publicly, review [PUBLIC_RELEASE_CHECKLIST.md](./PUBLIC_RELEASE_CHECKLIST.md).
-
-The most important remaining maintainer decision is where you want to receive commercial licensing inquiries.
+Before publishing updates, review [OPEN_SOURCE_RELEASE_CHECKLIST.md](./OPEN_SOURCE_RELEASE_CHECKLIST.md).

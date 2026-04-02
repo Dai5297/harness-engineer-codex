@@ -21,14 +21,13 @@ pnpm build
 - Avoid machine-local absolute paths in generated templates.
 - Do not commit `node_modules/`, `dist/`, `coverage/`, or ad hoc smoke directories.
 - Keep presets manifest-driven rather than scattering hardcoded special cases.
-- Do not describe the project as OSI open source while the repository uses the current source-available commercial licensing model.
+- Keep the package MIT-licensed and npm-installable without requiring a repository clone for end users.
 
 ## Contribution Licensing
 
 By intentionally submitting a contribution for inclusion in this repository, you agree that the maintainers may distribute your contribution under:
 
-- the repository's current Personal Free, Commercial Paid license
-- any future commercial license offered by the maintainers for this project
+- the repository's MIT license
 
 ## Useful Commands
 

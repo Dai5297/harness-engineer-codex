@@ -4,7 +4,7 @@
 
 它可以在一个空白仓库里一次性生成固定角色、长期记忆、runbook、任务计划与 handoff 结构，适合团队把 AI 协作流程沉淀为仓库内真源。
 
-> 许可说明：本项目采用“个人免费、商业付费”的公开源码许可，不属于 OSI 定义下的开源软件。详情见 [LICENSE.md](./LICENSE.md)、[LICENSE.zh-CN.md](./LICENSE.zh-CN.md) 和 [COMMERCIAL-LICENSING.md](./COMMERCIAL-LICENSING.md)。
+> 许可证：[MIT](./LICENSE)
 
 ## 它会生成什么
 
@@ -41,11 +41,24 @@ node dist/cli.js init . \
   --yes
 ```
 
-## 授权模型
+## 直接从 npm 使用
 
-- 个人使用免费。
-- 商业使用需要单独签署书面付费授权。
-- 本仓库会公开发布源码，但不属于 OSI 定义下的开源项目。
+用户不需要 clone 当前仓库，也可以直接从 npm 初始化项目：
+
+```bash
+pnpm dlx harness-engineer@latest init . \
+  --preset generic-software \
+  --project-name "Acme Platform" \
+  --language bilingual \
+  --yes
+```
+
+也可以先安装到项目里：
+
+```bash
+npm install -D harness-engineer
+npx harness-engineer init . --preset generic-software --project-name "Acme Platform"
+```
 
 ## 预设
 
@@ -85,7 +98,7 @@ node dist/cli.js init . \
 harness-engineer init [dir] \
   --preset <preset> \
   --project-name <name> \
-  [--language en|zh] \
+  [--language en|zh|bilingual] \
   [--dev-command "<cmd>"] \
   [--force] \
   [--yes]
@@ -97,6 +110,7 @@ harness-engineer init [dir] \
 - 使用 `--force` 可以覆盖受管理模板。
 - 传入 `--dev-command` 时会生成 `.codex/environments/environment.toml`。
 - `init` 会把 `harness-engineer` 自动加入 `devDependencies`。
+- `--language bilingual` 会保留标准 `AGENTS.md`，并额外生成双语版 `AGENTS.override.md` 与本地化核心 harness 文档。
 
 ### `task new`
 
@@ -155,11 +169,6 @@ src/      CLI 与生成器源码
 tests/    单元、集成与 fixture 兼容性测试
 ```
 
-## 对外发布说明
+## 开源发布说明
 
-准备公开仓库前，请先阅读 [PUBLIC_RELEASE_CHECKLIST.md](./PUBLIC_RELEASE_CHECKLIST.md)。
-
-当前最关键的维护者决策仍然是：
-
-- 你最终用于商业授权的联系邮箱或销售入口
-- GitHub 仓库地址确定后补充 `package.json` 的仓库元信息
+准备发布更新前，请先阅读 [OPEN_SOURCE_RELEASE_CHECKLIST.md](./OPEN_SOURCE_RELEASE_CHECKLIST.md)。
