@@ -307,3 +307,5 @@ pnpm release:check
 ## License
 
 [MIT](./LICENSE)
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/Dai5297/harness-engineer-codex?style=social)](https://github.com/Dai5297/harness-engineer-codex/stargazers)
