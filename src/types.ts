@@ -4,7 +4,10 @@ export type TaskClass = "A" | "B" | "C";
 
 export interface HarnessPathsConfig {
   docsRoot: string;
-  sourceOfTruthDir: string;
+  designDocsDir: string;
+  productSpecsDir: string;
+  generatedDocsDir: string;
+  referencesDir: string;
   runbooksDir: string;
   plansActiveDir: string;
   plansCompletedDir: string;

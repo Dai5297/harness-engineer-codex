@@ -1,19 +1,30 @@
 # harness-engineer
 
-`harness-engineer` 是一个面向 Codex 的仓库协作脚手架 CLI，用来把“harness 作为文件结构”的工作方式封装成可复用 npm 包。
+`harness-engineer` 是一个开源的 Codex 优先仓库脚手架 CLI，用来把“harness 作为文件结构”的协作方式封装成可复用 npm 包。
 
-它可以在一个空白仓库里一次性生成固定角色、长期记忆、runbook、任务计划与 handoff 结构，适合团队把 AI 协作流程沉淀为仓库内真源。
+它可以在空白仓库中一次性生成固定角色、长期记忆、runbook、记录系统文档以及执行计划闭环，让 AI 协作方式能够直接沉淀到仓库本身。
 
 > 许可证：[MIT](./LICENSE)
 > npm 包地址：[harness-engineer](https://www.npmjs.com/package/harness-engineer)
 
+## 为什么现在是这个结构
+
+默认 preset 已按 OpenAI 的 harness engineering 文章思路调整：
+
+- 让 Codex 入口文件保持简短
+- 把仓库文档当成记录系统
+- 把执行计划当成一等工件进行版本化
+- 通过渐进式披露提供上下文，而不是塞一个巨大说明书
+
+文章里使用的是 `AGENTS.md` 概念；这个工具面向 Codex，因此实际生成的是 `AGENTS.override.md`。
+
 ## 它会生成什么
 
-- `AGENTS.md` 作为最短协作入口
+- `AGENTS.override.md` 作为简短的 Codex 协作地图
 - `.codex/config.toml` 和 `.codex/agents/` 下的固定角色文件
 - `.codex/memory/` 下的长期记忆
-- `docs/index.md`、runbook 和真源文档占位
-- `docs/plans/` 与 `logs/codex/` 下的任务闭环目录
+- `ARCHITECTURE.md` 以及 `docs/design-docs/`、`docs/product-specs/`、`docs/generated/`、`docs/references/` 下的记录系统文档
+- `docs/exec-plans/` 下的执行计划，以及 `logs/codex/` 下的运行产物
 - 机器可读配置 `harness-engineer.config.json`
 
 ## 快速开始
@@ -40,6 +51,7 @@ pnpm build
 node dist/cli.js init . \
   --preset generic-software \
   --project-name "Acme Platform" \
+  --language bilingual \
   --yes
 ```
 
@@ -84,20 +96,24 @@ npx harness-engineer init . --preset generic-software --project-name "Acme Platf
 - `reviewer`
 - `qa-guard`
 
-真源文档落在 `docs/source-of-truth/`。
+记录系统文档按以下结构组织：
 
-### `agentadmin-codex`
+- `ARCHITECTURE.md`
+- `docs/design-docs/`
+- `docs/product-specs/`
+- `docs/generated/`
+- `docs/references/`
+- `docs/exec-plans/`
 
-从 AgentAdmin harness 抽取出来的兼容预设。
+## 语言模式
 
-它保留 AgentAdmin 当前的文档分层方式（`dev-docs/ + spec/`）和固定角色命名：
+`init` 支持三种输出模式：
 
-- `architect-backend`
-- `architect-frontend`
-- `runtime-executor`
-- `console-ui`
-- `reviewer`
-- `qa-guard`
+- `en`：仅英文 harness 文件
+- `zh`：中文本地化 harness 文件
+- `bilingual`：双语 harness 文档，包括 `AGENTS.override.md`
+
+三种模式都保持相同的标准文件路径。
 
 ## CLI 命令
 
@@ -115,11 +131,10 @@ harness-engineer init [dir] \
 
 说明：
 
-- 默认只生成缺失文件，不覆盖已有模板。
-- 使用 `--force` 可以覆盖受管理模板。
-- 传入 `--dev-command` 时会生成 `.codex/environments/environment.toml`。
-- `init` 会把 `harness-engineer` 自动加入 `devDependencies`。
-- `--language bilingual` 会保留标准 `AGENTS.md`，并额外生成双语版 `AGENTS.override.md` 与本地化核心 harness 文档。
+- 默认只生成缺失文件，不覆盖已有模板
+- 使用 `--force` 可以覆盖受管理模板
+- 传入 `--dev-command` 时会生成 `.codex/environments/environment.toml`
+- `init` 会把 `harness-engineer` 自动加入 `devDependencies`
 
 ### `task new`
 
@@ -129,7 +144,7 @@ harness-engineer task new <slug> --class A|B|C
 
 会创建：
 
-- `docs/plans/active/<slug>.md`
+- `docs/exec-plans/active/<slug>.md`
 - `logs/codex/active/<slug>/run.md`
 - `logs/codex/active/<slug>/handoff.md`
 
@@ -169,13 +184,13 @@ pnpm build
 
 - 单元测试：渲染、配置、预设选择
 - 集成测试：init、任务生命周期、CLI smoke、status 漂移检查
-- 兼容性测试：`tests/integration/agentadmin-golden.test.ts`
+- 独立性校验：确保生成结果不再残留外部项目标识或本机绝对路径
 
 ## 仓库结构
 
 ```text
 src/      CLI 与生成器源码
-tests/    单元、集成与 fixture 兼容性测试
+tests/    单元与集成测试
 ```
 
 ## 开源发布说明

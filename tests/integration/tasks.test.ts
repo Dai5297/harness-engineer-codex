@@ -24,7 +24,7 @@ describe("task lifecycle", () => {
         taskClass: "B",
       });
 
-      await expect(stat(join(dir, "docs", "plans", "active", "demo-task.md"))).resolves.toBeDefined();
+      await expect(stat(join(dir, "docs", "exec-plans", "active", "demo-task.md"))).resolves.toBeDefined();
       await expect(stat(join(dir, "logs", "codex", "active", "demo-task", "run.md"))).resolves.toBeDefined();
       await expect(stat(join(dir, "logs", "codex", "active", "demo-task", "handoff.md"))).resolves.toBeDefined();
     });
@@ -75,7 +75,7 @@ describe("task lifecycle", () => {
       });
 
       const archivedPlan = await readFile(
-        join(dir, "docs", "plans", "completed", "demo-task.md"),
+        join(dir, "docs", "exec-plans", "completed", "demo-task.md"),
         "utf8",
       );
 
@@ -119,12 +119,12 @@ describe("task lifecycle", () => {
         packageVersion: "0.1.0",
       });
 
-      await writeFile(join(dir, "AGENTS.md"), "# Drifted\n", "utf8");
+      await writeFile(join(dir, "AGENTS.override.md"), "# Drifted\n", "utf8");
       await rm(join(dir, "docs", "runbooks", "qa-agent.md"));
 
       const status = await getStatus(dir);
 
-      expect(status.driftedManagedFiles).toContain("AGENTS.md");
+      expect(status.driftedManagedFiles).toContain("AGENTS.override.md");
       expect(status.missingManagedFiles).toContain("docs/runbooks/qa-agent.md");
     });
   });

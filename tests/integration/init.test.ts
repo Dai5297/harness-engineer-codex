@@ -17,9 +17,11 @@ describe("initProject", () => {
       });
 
       expect(result.createdFiles.length).toBeGreaterThan(10);
-      await expect(stat(join(dir, "AGENTS.md"))).resolves.toBeDefined();
+      await expect(stat(join(dir, "AGENTS.override.md"))).resolves.toBeDefined();
       await expect(stat(join(dir, ".codex", "agents"))).resolves.toBeDefined();
-      await expect(stat(join(dir, "docs", "source-of-truth"))).resolves.toBeDefined();
+      await expect(stat(join(dir, "docs", "design-docs"))).resolves.toBeDefined();
+      await expect(stat(join(dir, "docs", "product-specs"))).resolves.toBeDefined();
+      await expect(stat(join(dir, "docs", "exec-plans"))).resolves.toBeDefined();
 
       const config = JSON.parse(
         await readFile(join(dir, "harness-engineer.config.json"), "utf8"),
@@ -46,7 +48,7 @@ describe("initProject", () => {
         packageVersion: "0.1.0",
       });
 
-      expect(secondRun.skippedFiles).toContain("AGENTS.md");
+      expect(secondRun.skippedFiles).toContain("AGENTS.override.md");
       expect(secondRun.overwrittenFiles).toEqual([]);
     });
   });
@@ -60,7 +62,7 @@ describe("initProject", () => {
         packageVersion: "0.1.0",
       });
 
-      const agentsPath = join(dir, "AGENTS.md");
+      const agentsPath = join(dir, "AGENTS.override.md");
       await readFile(agentsPath, "utf8");
 
       const forcedRun = await initProject({
@@ -71,7 +73,7 @@ describe("initProject", () => {
         force: true,
       });
 
-      expect(forcedRun.overwrittenFiles).toContain("AGENTS.md");
+      expect(forcedRun.overwrittenFiles).toContain("AGENTS.override.md");
     });
   });
 
@@ -90,7 +92,7 @@ describe("initProject", () => {
     });
   });
 
-  it("keeps the generic preset free of AgentAdmin identifiers and absolute paths", async () => {
+  it("keeps the generic preset free of external-project identifiers, legacy layout names, and absolute paths", async () => {
     await withTempDir(async (dir) => {
       await initProject({
         cwd: dir,
@@ -109,6 +111,9 @@ describe("initProject", () => {
       const combined = `${agentsContent}\n${indexContent}\n${bootstrapContent}`;
       expect(combined).not.toContain("AgentAdmin");
       expect(combined).not.toContain("agentadmin-");
+      expect(combined).not.toContain("dev-docs/");
+      expect(combined).not.toContain("docs/source-of-truth");
+      expect(combined).not.toContain("docs/plans/");
       expect(combined).not.toContain("/Users/");
     });
   });
@@ -123,7 +128,6 @@ describe("initProject", () => {
         language: "bilingual",
       });
 
-      const agentsContent = await readFile(join(dir, "AGENTS.md"), "utf8");
       const overrideContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
       const indexContent = await readFile(join(dir, "docs", "index.md"), "utf8");
       const bootstrapContent = await readFile(
@@ -131,11 +135,11 @@ describe("initProject", () => {
         "utf8",
       );
 
-      expect(agentsContent).not.toContain("## 中文");
       expect(overrideContent).toContain("## 中文");
       expect(overrideContent).toContain("## English");
       expect(indexContent).toContain("## 中文");
       expect(bootstrapContent).toContain("## English");
+      await expect(stat(join(dir, "AGENTS.md"))).rejects.toThrow();
 
       const config = JSON.parse(
         await readFile(join(dir, "harness-engineer.config.json"), "utf8"),

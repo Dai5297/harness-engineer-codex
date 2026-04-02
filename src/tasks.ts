@@ -61,7 +61,7 @@ function buildPlanTemplate(slug: string, taskClass: TaskNewOptions["taskClass"])
 
 ## Out Of Scope
 
-## Truth Sources
+## Record-System Docs
 
 ## Current Decisions
 

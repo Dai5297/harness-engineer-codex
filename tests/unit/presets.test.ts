@@ -16,12 +16,15 @@ describe("presets", () => {
     ]);
   });
 
-  it("keeps the agentadmin-codex preset free of machine-local absolute paths", () => {
-    const preset = getPreset("agentadmin-codex");
+  it("keeps the generic-software preset free of machine-local paths and external-project identifiers", () => {
+    const preset = getPreset("generic-software");
     const serialized = JSON.stringify(preset);
 
     expect(serialized).not.toContain("/Users/");
-    expect(serialized).toContain("AgentAdmin");
+    expect(serialized).not.toContain("AgentAdmin");
+    expect(serialized).not.toContain("agentadmin-");
+    expect(serialized).not.toContain("dev-docs/");
+    expect(serialized).not.toContain("\"spec/");
   });
 
   it("throws for unknown presets", () => {

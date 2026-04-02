@@ -1,5 +1,5 @@
 import type { HarnessConfig, HarnessPathsConfig, HarnessRoleConfig, TruthSourceConfig } from "./types.js";
-import { dedent, escapeTomlString, joinLines, joinPath, relativePathList, renderTomlArray } from "./utils.js";
+import { dedent, escapeTomlString, joinPath, relativePathList, renderTomlArray } from "./utils.js";
 
 export interface GeneratedFile {
   path: string;
@@ -13,16 +13,18 @@ export interface PresetDefinition {
   paths: HarnessPathsConfig;
   roles: HarnessRoleConfig[];
   truthSources: TruthSourceConfig[];
-  includeOverrideFile: boolean;
   buildManagedFiles(config: HarnessConfig): GeneratedFile[];
 }
 
 const genericPaths: HarnessPathsConfig = {
   docsRoot: "docs",
-  sourceOfTruthDir: "docs/source-of-truth",
+  designDocsDir: "docs/design-docs",
+  productSpecsDir: "docs/product-specs",
+  generatedDocsDir: "docs/generated",
+  referencesDir: "docs/references",
   runbooksDir: "docs/runbooks",
-  plansActiveDir: "docs/plans/active",
-  plansCompletedDir: "docs/plans/completed",
+  plansActiveDir: "docs/exec-plans/active",
+  plansCompletedDir: "docs/exec-plans/completed",
   logsActiveDir: "logs/codex/active",
   logsCompletedDir: "logs/codex/completed",
   codexDir: ".codex",
@@ -31,87 +33,85 @@ const genericPaths: HarnessPathsConfig = {
   codexEnvironmentFile: ".codex/environments/environment.toml",
 };
 
-const agentAdminPaths: HarnessPathsConfig = {
-  ...genericPaths,
-  sourceOfTruthDir: "dev-docs",
-};
-
 const genericTruthSources: TruthSourceConfig[] = [
   {
-    key: "source-of-truth-index",
-    path: "docs/source-of-truth/README.md",
-    title: "Source Of Truth Index",
-    summary: "Describes how the repository stores product, architecture, and delivery truths.",
+    key: "architecture-map",
+    path: "ARCHITECTURE.md",
+    title: "Architecture Map",
+    summary: "Provides the top-level map of domains, layers, and dependency boundaries.",
   },
   {
-    key: "project-overview",
-    path: "docs/source-of-truth/project-overview.md",
-    title: "Project Overview",
-    summary: "Captures product goals, users, constraints, and non-goals.",
+    key: "design-docs-index",
+    path: "docs/design-docs/index.md",
+    title: "Design Docs Index",
+    summary: "Indexes design docs, validation status, and where deeper context lives.",
   },
   {
-    key: "system-overview",
-    path: "docs/source-of-truth/system-overview.md",
-    title: "System Overview",
-    summary: "Documents the high-level architecture, boundaries, and main flows.",
+    key: "core-beliefs",
+    path: "docs/design-docs/core-beliefs.md",
+    title: "Core Beliefs",
+    summary: "Defines the operating principles and product beliefs the harness should preserve.",
   },
   {
-    key: "backend-architecture",
-    path: "docs/source-of-truth/backend-architecture.md",
-    title: "Backend Architecture",
-    summary: "Defines backend module ownership, contracts, and implementation boundaries.",
+    key: "product-specs-index",
+    path: "docs/product-specs/index.md",
+    title: "Product Specs Index",
+    summary: "Indexes user-facing specs and the product areas they cover.",
   },
   {
-    key: "frontend-architecture",
-    path: "docs/source-of-truth/frontend-architecture.md",
-    title: "Frontend Architecture",
-    summary: "Defines route ownership, UI layering, and interaction boundaries.",
+    key: "onboarding-spec",
+    path: "docs/product-specs/new-user-onboarding.md",
+    title: "New User Onboarding",
+    summary: "Example product spec that demonstrates how user journeys should be captured.",
   },
   {
-    key: "api-specification",
-    path: "docs/source-of-truth/api-specification.md",
-    title: "API Specification",
-    summary: "Describes API contracts, request and response shapes, and compatibility expectations.",
+    key: "design-overview",
+    path: "docs/DESIGN.md",
+    title: "Design Overview",
+    summary: "Captures design language, quality bars, and UX invariants.",
   },
   {
-    key: "integration-and-acceptance",
-    path: "docs/source-of-truth/integration-and-acceptance.md",
-    title: "Integration And Acceptance",
-    summary: "Tracks integration rules, validation evidence, and release readiness expectations.",
+    key: "frontend-guide",
+    path: "docs/FRONTEND.md",
+    title: "Frontend Guide",
+    summary: "Documents frontend structure, interaction rules, and readability constraints.",
   },
   {
-    key: "quality-gates",
-    path: "docs/source-of-truth/quality-gates.md",
-    title: "Quality Gates",
-    summary: "Defines the minimum verification bar for shipping changes.",
+    key: "plans-guide",
+    path: "docs/PLANS.md",
+    title: "Plans Guide",
+    summary: "Explains how execution plans, decision logs, and task closure should work.",
   },
-];
-
-const agentAdminTruthSources: TruthSourceConfig[] = [
-  { key: "document-system-index", path: "dev-docs/00-document-system-index.md", title: "Document System Index", summary: "Owns the documentation system, reading order, and truth-source rules." },
-  { key: "project-overview", path: "dev-docs/01-project-overview.md", title: "Project Overview", summary: "Defines product positioning, users, MVP boundaries, and non-goals." },
-  { key: "system-overview", path: "dev-docs/02-system-overview.md", title: "System Overview", summary: "Defines modular-monolith boundaries and control-plane vs exec-plane ownership." },
-  { key: "backend-development-architecture", path: "dev-docs/03-backend-development-architecture.md", title: "Backend Development Architecture", summary: "Defines backend modules, control-plane responsibilities, and implementation sequencing." },
-  { key: "frontend-development-architecture", path: "dev-docs/04-frontend-development-architecture.md", title: "Frontend Development Architecture", summary: "Defines console routes, frontend layering, permissions, and SSE integration rules." },
-  { key: "api-specification", path: "dev-docs/05-api-specification.md", title: "API Specification", summary: "Defines REST, SSE, pagination, and contract rules." },
-  { key: "data-model-specification", path: "dev-docs/06-data-model-specification.md", title: "Data Model Specification", summary: "Defines entities, tables, JSON payload fields, and hot-vs-cold data placement." },
-  { key: "enum-state-definitions", path: "dev-docs/07-enum-and-state-definitions.md", title: "Enum And State Definitions", summary: "Defines enums, statuses, and state-machine rules." },
-  { key: "error-code-specification", path: "dev-docs/08-error-code-specification.md", title: "Error Code Specification", summary: "Defines platform error codes and their semantics." },
-  { key: "common-fields-and-naming", path: "dev-docs/09-common-fields-and-naming.md", title: "Common Fields And Naming", summary: "Defines naming, shared fields, and path rules." },
-  { key: "frontend-backend-collaboration", path: "dev-docs/10-frontend-backend-collaboration.md", title: "Frontend Backend Collaboration", summary: "Defines collaboration rules between frontend and backend teams." },
-  { key: "integration-and-acceptance", path: "dev-docs/11-integration-and-acceptance.md", title: "Integration And Acceptance", summary: "Defines integration and acceptance evidence requirements." },
-  { key: "development-plan", path: "dev-docs/12-development-plan.md", title: "Development Plan", summary: "Documents the phased development plan." },
-  { key: "pre-development-checklist", path: "dev-docs/13-pre-development-checklist.md", title: "Pre-Development Checklist", summary: "Lists the minimum checks before feature work begins." },
-  { key: "tool-development-plan", path: "dev-docs/14-tool-development-plan.md", title: "Tool Development Plan", summary: "Documents tool-related implementation priorities." },
-  { key: "backend-architecture-spec", path: "spec/backend-architecture.md", title: "Backend Architecture Spec", summary: "Provides detailed runtime, control-plane, and module design." },
-  { key: "frontend-architecture-spec", path: "spec/frontend-architecture.md", title: "Frontend Architecture Spec", summary: "Provides detailed console structure and UI patterns." },
-  { key: "deep-research-report", path: "spec/deep-research-report.md", title: "Deep Research Report", summary: "Captures market and product rationale." },
-  { key: "executor-protocol", path: "spec/executor-protocol.md", title: "Executor Protocol", summary: "Defines register, heartbeat, and invoke protocol behavior." },
-  { key: "quality-gates", path: "spec/quality-gates.md", title: "Quality Gates", summary: "Defines critical validation rules." },
-  { key: "run-stream-event-schema", path: "spec/run-stream-event-schema.md", title: "Run Stream Event Schema", summary: "Defines runtime streaming event contracts." },
-  { key: "session-auth-contract", path: "spec/session-auth-contract.md", title: "Session Auth Contract", summary: "Defines session, refresh, and permission version behavior." },
-  { key: "settings-secret-contract", path: "spec/settings-secret-contract.md", title: "Settings Secret Contract", summary: "Defines settings and secret behavior." },
-  { key: "jobs-retention-operations", path: "spec/jobs-retention-operations.md", title: "Jobs Retention Operations", summary: "Defines jobs and retention operational rules." },
+  {
+    key: "product-sense",
+    path: "docs/PRODUCT_SENSE.md",
+    title: "Product Sense",
+    summary: "Documents product priorities, non-goals, and how to judge user impact.",
+  },
+  {
+    key: "quality-score",
+    path: "docs/QUALITY_SCORE.md",
+    title: "Quality Score",
+    summary: "Tracks quality gaps across architecture and product areas.",
+  },
+  {
+    key: "reliability",
+    path: "docs/RELIABILITY.md",
+    title: "Reliability",
+    summary: "Defines observability, performance, and runtime verification expectations.",
+  },
+  {
+    key: "security",
+    path: "docs/SECURITY.md",
+    title: "Security",
+    summary: "Defines boundary validation, secret handling, and security review rules.",
+  },
+  {
+    key: "db-schema",
+    path: "docs/generated/db-schema.md",
+    title: "Generated DB Schema",
+    summary: "Holds generated or synthesized schema references that agents can consult locally.",
+  },
 ];
 
 const genericRoles: HarnessRoleConfig[] = [
@@ -127,9 +127,10 @@ const genericRoles: HarnessRoleConfig[] = [
     readFirst: [
       "docs/runbooks/backend-agent.md",
       ".codex/memory/backend.md",
-      "docs/source-of-truth/system-overview.md",
-      "docs/source-of-truth/backend-architecture.md",
-      "docs/source-of-truth/api-specification.md",
+      "ARCHITECTURE.md",
+      "docs/design-docs/index.md",
+      "docs/generated/db-schema.md",
+      "docs/SECURITY.md",
     ],
     scope: [
       "Backend services, modules, and contract ownership",
@@ -138,13 +139,13 @@ const genericRoles: HarnessRoleConfig[] = [
     ],
     doNot: [
       "Do not redesign frontend information architecture",
-      "Do not weaken contract or permission guarantees without truth-source updates",
+      "Do not weaken contract or permission guarantees without record-system updates",
       "Do not invent new runtime semantics without alignment",
     ],
     handoffRequired: [
       "Touched backend modules and files",
       "Contract, permission, audit, and state impact",
-      "Required truth-source updates",
+      "Required record-system updates",
       "Recommended next role",
     ],
     defaultOutput: [
@@ -165,9 +166,10 @@ const genericRoles: HarnessRoleConfig[] = [
     readFirst: [
       "docs/runbooks/frontend-agent.md",
       ".codex/memory/frontend.md",
-      "docs/source-of-truth/system-overview.md",
-      "docs/source-of-truth/frontend-architecture.md",
-      "docs/source-of-truth/api-specification.md",
+      "ARCHITECTURE.md",
+      "docs/FRONTEND.md",
+      "docs/DESIGN.md",
+      "docs/product-specs/index.md",
     ],
     scope: [
       "Route ownership and information architecture",
@@ -203,9 +205,10 @@ const genericRoles: HarnessRoleConfig[] = [
     readFirst: [
       "docs/runbooks/runtime-agent.md",
       ".codex/memory/runtime.md",
-      "docs/source-of-truth/system-overview.md",
-      "docs/source-of-truth/backend-architecture.md",
-      "docs/source-of-truth/api-specification.md",
+      "ARCHITECTURE.md",
+      "docs/RELIABILITY.md",
+      "docs/SECURITY.md",
+      "docs/generated/db-schema.md",
     ],
     scope: [
       "Runtime orchestration and integration flows",
@@ -214,13 +217,13 @@ const genericRoles: HarnessRoleConfig[] = [
     ],
     doNot: [
       "Do not move governance responsibility into integration endpoints",
-      "Do not weaken preview vs formal safety rules without truth-source updates",
+      "Do not weaken preview vs formal safety rules without record-system updates",
       "Do not redefine UI flows that belong to frontend roles",
     ],
     handoffRequired: [
       "Touched runtime or integration files",
       "Protocol, event, and security impact",
-      "Required truth-source updates",
+      "Required record-system updates",
       "Recommended next role",
     ],
     defaultOutput: [
@@ -241,7 +244,9 @@ const genericRoles: HarnessRoleConfig[] = [
     readFirst: [
       "docs/runbooks/frontend-agent.md",
       ".codex/memory/frontend.md",
-      "docs/source-of-truth/frontend-architecture.md",
+      "docs/FRONTEND.md",
+      "docs/DESIGN.md",
+      "docs/product-specs/new-user-onboarding.md",
     ],
     scope: [
       "Pages and shared UI components",
@@ -312,236 +317,9 @@ const genericRoles: HarnessRoleConfig[] = [
     readFirst: [
       "docs/runbooks/qa-agent.md",
       ".codex/memory/decisions.md",
-      "docs/source-of-truth/integration-and-acceptance.md",
-      "docs/source-of-truth/quality-gates.md",
-    ],
-    scope: [
-      "Validation strategy and execution notes",
-      "Quality-gate checks",
-      "Explicit verified vs unverified reporting",
-    ],
-    doNot: [
-      "Do not claim tests passed when they were not run",
-      "Do not hide blocking gaps in critical flows",
-      "Do not replace reviewer correctness checks",
-    ],
-    handoffRequired: [
-      "Executed validations",
-      "Unexecuted validations",
-      "Blocking and non-blocking risks",
-      "Recommended next role",
-    ],
-    defaultOutput: [
-      "Validation matrix",
-      "Quality-gate status",
-      "Next-step recommendation",
-    ],
-  },
-];
-
-const agentAdminRoles: HarnessRoleConfig[] = [
-  {
-    key: "architect-backend",
-    name: "architect-backend",
-    purpose: "Own control-plane backend design, module boundaries, and contract-sensitive backend changes.",
-    model: "gpt-5.4",
-    reasoningEffort: "high",
-    memoryFile: ".codex/memory/backend.md",
-    runbookFile: "docs/runbooks/backend-agent.md",
-    handoffPathHint: "logs/codex/active/<task-slug>/handoff.md",
-    readFirst: [
-      "docs/runbooks/backend-agent.md",
-      ".codex/memory/backend.md",
-      "dev-docs/02-system-overview.md",
-      "dev-docs/03-backend-development-architecture.md",
-      "spec/backend-architecture.md",
-    ],
-    scope: [
-      "Control Plane backend modules",
-      "API, data model, permission, audit, and governance boundaries",
-      "Backend module placement and implementation shape",
-    ],
-    doNot: [
-      "Do not redesign runtime internals that belong to Exec Plane",
-      "Do not invent new API or enum semantics without source-of-truth alignment",
-      "Do not expand into frontend UI work",
-    ],
-    handoffRequired: [
-      "Touched backend modules and files",
-      "Contract, tenant, permission, audit, and state-machine impact",
-      "Required document sync",
-      "Recommended next role",
-    ],
-    defaultOutput: [
-      "Affected backend boundary",
-      "Implementation recommendation",
-      "Risk and validation notes",
-    ],
-  },
-  {
-    key: "architect-frontend",
-    name: "architect-frontend",
-    purpose: "Own console information architecture, route placement, feature boundaries, and frontend contract consumption.",
-    model: "gpt-5.4",
-    reasoningEffort: "high",
-    memoryFile: ".codex/memory/frontend.md",
-    runbookFile: "docs/runbooks/frontend-agent.md",
-    handoffPathHint: "logs/codex/active/<task-slug>/handoff.md",
-    readFirst: [
-      "docs/runbooks/frontend-agent.md",
-      ".codex/memory/frontend.md",
-      "dev-docs/02-system-overview.md",
-      "dev-docs/04-frontend-development-architecture.md",
-      "spec/frontend-architecture.md",
-    ],
-    scope: [
-      "Console route ownership",
-      "Feature, component, and API adapter boundaries",
-      "Permission, tenant-context, and SSE interaction design",
-    ],
-    doNot: [
-      "Do not turn the product into a chat-first or canvas-first UI",
-      "Do not invent contract fields outside the backend specification",
-      "Do not absorb detailed visual implementation work that belongs to console-ui",
-    ],
-    handoffRequired: [
-      "Touched routes, features, or API adapters",
-      "Permission and SSE impact",
-      "Contract dependencies",
-      "Recommended next role",
-    ],
-    defaultOutput: [
-      "Affected console boundary",
-      "Information-architecture recommendation",
-      "Risk and validation notes",
-    ],
-  },
-  {
-    key: "runtime-executor",
-    name: "runtime-executor",
-    purpose: "Own runtime orchestration, executor integration, tool binding, and run-chain protocol and safety boundaries.",
-    model: "gpt-5.4",
-    reasoningEffort: "high",
-    memoryFile: ".codex/memory/runtime.md",
-    runbookFile: "docs/runbooks/runtime-agent.md",
-    handoffPathHint: "logs/codex/active/<task-slug>/handoff.md",
-    readFirst: [
-      "docs/runbooks/runtime-agent.md",
-      ".codex/memory/runtime.md",
-      "dev-docs/02-system-overview.md",
-      "dev-docs/03-backend-development-architecture.md",
-      "spec/backend-architecture.md",
-      "spec/executor-protocol.md",
-      "spec/run-stream-event-schema.md",
-    ],
-    scope: [
-      "Runtime orchestration flow",
-      "Executor protocol and safety rules",
-      "Tool binding and run event semantics",
-    ],
-    doNot: [
-      "Do not move governance responsibility from Control Plane into executors",
-      "Do not weaken preview/formal run safety boundaries",
-      "Do not change SSE or protocol semantics without source-of-truth updates",
-    ],
-    handoffRequired: [
-      "Touched runtime or executor files",
-      "Protocol, SSE, preview/formal, and security impact",
-      "Required document sync",
-      "Recommended next role",
-    ],
-    defaultOutput: [
-      "Affected runtime boundary",
-      "Protocol or implementation recommendation",
-      "Risk and validation notes",
-    ],
-  },
-  {
-    key: "console-ui",
-    name: "console-ui",
-    purpose: "Own concrete console page, component, table, form, and detail-view implementation inside approved frontend architecture.",
-    model: "gpt-5.4",
-    reasoningEffort: "medium",
-    memoryFile: ".codex/memory/frontend.md",
-    runbookFile: "docs/runbooks/frontend-agent.md",
-    handoffPathHint: "logs/codex/active/<task-slug>/handoff.md",
-    readFirst: [
-      "docs/runbooks/frontend-agent.md",
-      ".codex/memory/frontend.md",
-      "dev-docs/04-frontend-development-architecture.md",
-      "spec/frontend-architecture.md",
-    ],
-    scope: [
-      "Console pages and components",
-      "Forms, tables, details, timelines, and state feedback",
-      "B-end console UI polish without breaking architecture",
-    ],
-    doNot: [
-      "Do not redefine route ownership or contract semantics without architect-frontend alignment",
-      "Do not turn governance pages into marketing or chat UI",
-      "Do not hardcode permission semantics in page components",
-    ],
-    handoffRequired: [
-      "Touched pages and components",
-      "UI states and flows changed",
-      "Dependent API or permission assumptions",
-      "Recommended next role",
-    ],
-    defaultOutput: [
-      "Affected page or component area",
-      "Implementation summary",
-      "Risk and validation notes",
-    ],
-  },
-  {
-    key: "reviewer",
-    name: "reviewer",
-    purpose: "Own correctness review, regression detection, boundary checks, and document drift detection.",
-    model: "gpt-5.4",
-    reasoningEffort: "high",
-    memoryFile: ".codex/memory/decisions.md",
-    runbookFile: "docs/runbooks/reviewer-agent.md",
-    handoffPathHint: "logs/codex/active/<task-slug>/handoff.md",
-    readFirst: [
-      "docs/runbooks/reviewer-agent.md",
-      ".codex/memory/decisions.md",
-      "docs/index.md",
-    ],
-    scope: [
-      "Correctness and regression review",
-      "Boundary, contract, state, permission, and audit checks",
-      "Missing test or document updates",
-    ],
-    doNot: [
-      "Do not expand task scope into unsolicited refactors",
-      "Do not reduce review to style-only comments",
-      "Do not ignore unverified high-risk paths",
-    ],
-    handoffRequired: [
-      "Ordered findings with severity",
-      "Residual risk and testing gaps",
-      "Recommended next role",
-    ],
-    defaultOutput: [
-      "Findings first",
-      "Residual risk summary",
-      "Next-step recommendation",
-    ],
-  },
-  {
-    key: "qa-guard",
-    name: "qa-guard",
-    purpose: "Own validation closure, test matrix definition, quality-gate checks, and evidence of what was and was not verified.",
-    model: "gpt-5.4",
-    reasoningEffort: "medium",
-    memoryFile: ".codex/memory/decisions.md",
-    runbookFile: "docs/runbooks/qa-agent.md",
-    handoffPathHint: "logs/codex/active/<task-slug>/handoff.md",
-    readFirst: [
-      "docs/runbooks/qa-agent.md",
-      ".codex/memory/decisions.md",
-      "dev-docs/11-integration-and-acceptance.md",
-      "spec/quality-gates.md",
+      "docs/QUALITY_SCORE.md",
+      "docs/RELIABILITY.md",
+      "docs/SECURITY.md",
     ],
     scope: [
       "Validation strategy and execution notes",
@@ -676,7 +454,7 @@ function buildActivePlansReadme(language: HarnessConfig["language"]): string {
 
     ## Out Of Scope
 
-    ## Truth Sources
+    ## Record-System Docs
 
     ## Current Decisions
 
@@ -733,7 +511,7 @@ function buildActivePlansReadme(language: HarnessConfig["language"]): string {
 
     ## Out Of Scope
 
-    ## Truth Sources
+    ## Record-System Docs
 
     ## Current Decisions
 
@@ -771,7 +549,7 @@ function buildCompletedPlansReadme(language: HarnessConfig["language"]): string 
     - The active plan has a final outcome summary.
     - Matching run log and handoff files exist under \`logs/codex/\`.
     - Durable conclusions were copied into \`.codex/memory/\` where needed.
-    - Required truth-source updates are either complete or explicitly deferred.
+    - Required record-system updates are either complete or explicitly deferred.
 
     ## 2. Minimum completion sections
 
@@ -802,7 +580,7 @@ function buildCompletedPlansReadme(language: HarnessConfig["language"]): string 
     - active 计划已经补充最终结果摘要。
     - 对应的 run log 与 handoff 已存在于 \`logs/codex/\`。
     - 需要长期保留的结论已同步到 \`.codex/memory/\`。
-    - 必需的真源文档更新已经完成，或已明确延期。
+    - 必需的记录系统文档更新已经完成，或已明确延期。
 
     ## 2. 最小完成段落
 
@@ -1019,13 +797,13 @@ function buildGenericAgentsReadme(config: HarnessConfig): string {
     2. \`docs/runbooks/<role-runbook>.md\`
     3. \`.codex/memory/<domain>.md\`
     4. The latest matching handoff
-    5. The current plan and source-of-truth docs
+    5. The current exec plan and record-system docs
   `);
 
   const chinese = dedent(`
     # 固定角色池
 
-    这里是 ${config.projectName} 固定 Codex 角色池的仓库内真源。
+    这里是 ${config.projectName} 固定 Codex 角色池的仓库内记录源。
 
     ## 作用
 
@@ -1045,7 +823,7 @@ function buildGenericAgentsReadme(config: HarnessConfig): string {
     2. \`docs/runbooks/<role-runbook>.md\`
     3. \`.codex/memory/<domain>.md\`
     4. 最新对应 handoff
-    5. 当前计划和真源文档
+    5. 当前执行计划和记录系统文档
   `);
 
   return localizeMarkdownPair(config.language, english, chinese, "Fixed Agent Pool / 固定角色池");
@@ -1114,24 +892,23 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
   const english = dedent(`
     # ${config.projectName} Documentation Index
 
-    This file is the Codex harness entrypoint for the repository. It links source-of-truth docs,
+    This file is the Codex harness entrypoint for the repository. It links the record system,
     fixed role runbooks, durable memory, and task artifacts together.
 
     ## 1. Read first
 
     Main-thread default order:
 
-    1. \`../AGENTS.md\`
-    2. If present, \`../AGENTS.override.md\`
-    3. This file
-    4. \`../.codex/config.toml\`
-    5. \`../.codex/agents/README.md\`
-    6. \`../.codex/memory/registry.md\`
-    7. The matching runbook
-    8. The most recent handoff
-    9. Only then the implementation
+    1. \`../AGENTS.override.md\`
+    2. This file
+    3. \`../.codex/config.toml\`
+    4. \`../.codex/agents/README.md\`
+    5. \`../.codex/memory/registry.md\`
+    6. The matching runbook
+    7. The most recent handoff
+    8. Only then the implementation
 
-    ## 2. Source of truth docs
+    ## 2. Record-system docs
 
     ${config.truthSources.map((source) => `- \`../${source.path}\` — ${source.summary}`).join("\n")}
 
@@ -1141,8 +918,11 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
     - \`../.codex/agents/\`
     - \`../.codex/memory/\`
     - \`./runbooks/\`
-    - \`./plans/active/\`
-    - \`./plans/completed/\`
+    - \`./exec-plans/active/\`
+    - \`./exec-plans/completed/\`
+    - \`./exec-plans/tech-debt-tracker.md\`
+    - \`./generated/\`
+    - \`./references/\`
     - \`../logs/codex/active/\`
     - \`../logs/codex/completed/\`
   `);
@@ -1150,23 +930,22 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
   const chinese = dedent(`
     # ${config.projectName} 文档索引
 
-    这个文件是仓库内 Codex harness 的入口，负责把真源文档、固定角色 runbook、长期 memory 和任务产物串起来。
+    这个文件是仓库内 Codex harness 的入口，负责把记录系统、固定角色 runbook、长期 memory 和任务产物串起来。
 
     ## 1. 优先读取顺序
 
     主线程默认顺序：
 
-    1. \`../AGENTS.md\`
-    2. 如果存在，再读 \`../AGENTS.override.md\`
-    3. 本文件
-    4. \`../.codex/config.toml\`
-    5. \`../.codex/agents/README.md\`
-    6. \`../.codex/memory/registry.md\`
-    7. 对应 runbook
-    8. 最新 handoff
-    9. 最后才看具体实现代码
+    1. \`../AGENTS.override.md\`
+    2. 本文件
+    3. \`../.codex/config.toml\`
+    4. \`../.codex/agents/README.md\`
+    5. \`../.codex/memory/registry.md\`
+    6. 对应 runbook
+    7. 最新 handoff
+    8. 最后才看具体实现代码
 
-    ## 2. 真源文档
+    ## 2. 记录系统文档
 
     ${config.truthSources.map((source) => `- \`../${source.path}\` — ${source.title}`).join("\n")}
 
@@ -1176,33 +955,41 @@ function buildGenericDocsIndex(config: HarnessConfig): string {
     - \`../.codex/agents/\`
     - \`../.codex/memory/\`
     - \`./runbooks/\`
-    - \`./plans/active/\`
-    - \`./plans/completed/\`
+    - \`./exec-plans/active/\`
+    - \`./exec-plans/completed/\`
+    - \`./exec-plans/tech-debt-tracker.md\`
+    - \`./generated/\`
+    - \`./references/\`
     - \`../logs/codex/active/\`
     - \`../logs/codex/completed/\`
   `);
 
-  return localizeMarkdownPair(config.language, english, chinese, `${config.projectName} Documentation Index / ${config.projectName} 文档索引`);
+  return localizeMarkdownPair(
+    config.language,
+    english,
+    chinese,
+    `${config.projectName} Documentation Index / ${config.projectName} 文档索引`,
+  );
 }
 
-function buildGenericAgentsMd(config: HarnessConfig): string {
-  return dedent(`
-    # AGENTS.md
+function buildGenericAgentsOverride(config: HarnessConfig): string {
+  const english = dedent(`
+    # AGENTS.override.md
 
-    ${config.projectName}'s repository collaboration entrypoint stays short. Detailed truth
-    belongs in \`docs/source-of-truth/\`, \`docs/\`, and \`.codex/memory/\`.
+    This is the short Codex collaboration map for ${config.projectName}. Keep it compact.
+    Durable truth belongs in \`ARCHITECTURE.md\`, \`docs/design-docs/\`, \`docs/product-specs/\`,
+    \`docs/exec-plans/\`, and \`.codex/memory/\`.
 
     ## 1. Priorities
 
     Resolve conflicts in this order:
 
     1. The current task
-    2. \`AGENTS.override.md\`
-    3. This file
-    4. \`docs/index.md\`
-    5. Source-of-truth docs
-    6. The current code
-    7. Chat inference
+    2. This file
+    3. \`docs/index.md\`
+    4. Record-system docs
+    5. The current code
+    6. Chat inference
 
     ## 2. Before starting any task
 
@@ -1219,7 +1006,7 @@ function buildGenericAgentsMd(config: HarnessConfig): string {
 
     Durable task artifacts live in:
 
-    - \`docs/plans/active/<task-slug>.md\`
+    - \`docs/exec-plans/active/<task-slug>.md\`
     - \`logs/codex/active/<task-slug>/run.md\`
     - \`logs/codex/active/<task-slug>/handoff.md\`
     - \`.codex/memory/*.md\`
@@ -1235,25 +1022,15 @@ function buildGenericAgentsMd(config: HarnessConfig): string {
     - break work into scoped tasks
     - choose fixed roles
     - keep plans, logs, and handoffs current
-    - summarize outputs and identify truth-source updates
+    - summarize outputs and identify record-system updates
 
-    Do not let subagents rely on chat history alone. Point them at repository files first.
-  `);
-}
-
-function buildGenericAgentsOverride(config: HarnessConfig): string {
-  const english = dedent(`
-    # AGENTS.override.md
-
-    This repository is initialized with an explicit language preference.
-
-    ## Language mode
+    ## 6. Language mode
 
     - Preferred harness language: \`${config.language}\`
     - Keep the canonical file paths unchanged.
     - Respect \`docs/index.md\`, runbooks, memory, plans, and logs as repository truth.
 
-    ## Output preference
+    ## 7. Output preference
 
     - If the task is conversational or documentation-heavy, respond in Chinese when helpful.
     - Keep code, file paths, CLI commands, and schema keys in their canonical form.
@@ -1263,15 +1040,61 @@ function buildGenericAgentsOverride(config: HarnessConfig): string {
   const chinese = dedent(`
     # AGENTS.override.md
 
-    当前仓库使用了明确的语言偏好设置。
+    这是 ${config.projectName} 的 Codex 协作短地图，应保持简短。长期稳定真相应写入
+    \`ARCHITECTURE.md\`、\`docs/design-docs/\`、\`docs/product-specs/\`、\`docs/exec-plans/\`
+    和 \`.codex/memory/\`。
 
-    ## 语言模式
+    ## 1. 优先级
+
+    冲突按以下顺序处理：
+
+    1. 当前任务
+    2. 本文件
+    3. \`docs/index.md\`
+    4. 记录系统文档
+    5. 当前代码
+    6. 聊天推断
+
+    ## 2. 开始任务前
+
+    主线程应先读取：
+
+    1. \`docs/index.md\`
+    2. 对应 runbook
+    3. \`.codex/memory/registry.md\`
+    4. 相关领域 memory
+    5. 最新 handoff
+    6. 然后再读代码
+
+    ## 3. 长周期任务产物
+
+    持久任务产物位于：
+
+    - \`docs/exec-plans/active/<task-slug>.md\`
+    - \`logs/codex/active/<task-slug>/run.md\`
+    - \`logs/codex/active/<task-slug>/handoff.md\`
+    - \`.codex/memory/*.md\`
+
+    ## 4. 固定角色
+
+    ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
+
+    ## 5. 主线程职责
+
+    主线程负责：
+
+    - 拆分有边界的任务
+    - 选择固定角色
+    - 持续维护计划、日志和 handoff
+    - 汇总结果并识别需要更新的记录系统文档
+
+    ## 6. 语言模式
 
     - 当前偏好语言：\`${config.language}\`
     - 保持标准文件路径不变。
-    - 继续以 \`docs/index.md\`、runbook、memory、plan 和 log 作为仓库真源。
+    - 继续以 \`docs/index.md\`、runbook、memory、exec plan 和 log 作为仓库记录系统。
 
-    ## 输出偏好
+    ## 7. 输出偏好
 
     - 对话类或文档类任务在有帮助时优先使用中文。
     - 代码、文件路径、CLI 命令和 schema key 保持其标准写法。
@@ -1289,13 +1112,13 @@ function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<st
       ## Stable position
 
       - The backend exists to own durable service boundaries and governance semantics.
-      - Contract and permission changes must align with source-of-truth docs first.
+      - Contract and permission changes must align with record-system docs first.
       - Shared code should stay focused and not absorb domain logic by accident.
 
       ## Common risks
 
       - Letting current code shape override the documented boundary.
-      - Changing API semantics without updating truth sources.
+      - Changing API semantics without updating record-system docs.
       - Hiding permission or audit checks inside scattered helpers.
     `), dedent(`
       # 后端 Memory
@@ -1303,13 +1126,13 @@ function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<st
       ## 稳定立场
 
       - 后端负责长期稳定的服务边界和治理语义。
-      - 合同与权限变化必须先对齐真源文档。
+      - 合同与权限变化必须先对齐记录系统文档。
       - 共享代码应保持聚焦，避免意外吸收领域逻辑。
 
       ## 常见风险
 
       - 让当前代码形态反过来覆盖文档边界。
-      - 改了 API 语义却没有更新真源文档。
+      - 改了 API 语义却没有更新记录系统文档。
       - 把权限或审计检查散落进各种 helper。
     `), "Backend Memory / 后端 Memory"),
     ".codex/memory/frontend.md": localizeMarkdownPair(language, dedent(`
@@ -1348,7 +1171,7 @@ function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<st
 
       - Runtime and integrations own orchestration safety, not product governance.
       - Preview, formal execution, and side-effect rules must stay explicit.
-      - Event or protocol changes require truth-source alignment before shipping.
+      - Event or protocol changes require record-system alignment before shipping.
 
       ## Common risks
 
@@ -1362,7 +1185,7 @@ function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<st
 
       - Runtime 和集成负责编排安全，不负责产品治理。
       - 预览、正式执行和副作用规则必须保持明确。
-      - 事件或协议变化在发布前必须先对齐真源文档。
+      - 事件或协议变化在发布前必须先对齐记录系统文档。
 
       ## 常见风险
 
@@ -1378,7 +1201,7 @@ function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<st
       - Repository collaboration is file-first, not chat-history-first.
       - Long-running work must leave plan, run-log, handoff, and memory traces.
       - Fixed roles should be reused before creating temporary roles.
-      - Main-thread orchestration should preserve source-of-truth precedence over code drift.
+      - Main-thread orchestration should preserve record-system precedence over code drift.
     `), dedent(`
       # 长期决策
 
@@ -1387,7 +1210,7 @@ function buildGenericMemoryFiles(language: HarnessConfig["language"]): Record<st
       - 仓库协作以文件为先，而不是以聊天历史为先。
       - 长周期工作必须留下计划、运行日志、handoff 和 memory 痕迹。
       - 在创建临时角色之前，应优先复用固定角色。
-      - 主线程编排应始终让真源文档优先于代码漂移。
+      - 主线程编排应始终让记录系统文档优先于代码漂移。
     `), "Durable Decisions / 长期决策"),
   };
 }
@@ -1408,16 +1231,15 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         ## 1. Read before starting
 
-        1. \`../../AGENTS.md\`
-        2. If present, \`../../AGENTS.override.md\`
-        3. \`../index.md\`
-        4. \`../../.codex/config.toml\`
-        5. \`../../.codex/agents/README.md\`
-        6. \`./main-thread-bootstrap.md\`
-        7. \`../../.codex/memory/registry.md\`
-        8. Relevant domain memory
-        9. The latest handoff
-        10. Relevant source-of-truth docs
+        1. \`../../AGENTS.override.md\`
+        2. \`../index.md\`
+        3. \`../../.codex/config.toml\`
+        4. \`../../.codex/agents/README.md\`
+        5. \`./main-thread-bootstrap.md\`
+        6. \`../../.codex/memory/registry.md\`
+        7. Relevant domain memory
+        8. The latest handoff
+        9. Relevant record-system docs
 
         ## 2. Fixed duties
 
@@ -1425,7 +1247,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         - define scope and validation
         - select fixed roles
         - maintain plan, run log, and handoff
-        - summarize risks and truth-source updates
+        - summarize risks and record-system updates
 
         ## 3. Fixed role pool
 
@@ -1433,7 +1255,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         ## 4. Task artifact locations
 
-        - \`../../docs/plans/active/<task-slug>.md\`
+        - \`../../docs/exec-plans/active/<task-slug>.md\`
         - \`../../logs/codex/active/<task-slug>/run.md\`
         - \`../../logs/codex/active/<task-slug>/handoff.md\`
       `), dedent(`
@@ -1444,16 +1266,15 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         ## 1. 开始前先读
 
-        1. \`../../AGENTS.md\`
-        2. 如果存在，再读 \`../../AGENTS.override.md\`
-        3. \`../index.md\`
-        4. \`../../.codex/config.toml\`
-        5. \`../../.codex/agents/README.md\`
-        6. \`./main-thread-bootstrap.md\`
-        7. \`../../.codex/memory/registry.md\`
-        8. 相关领域 memory
-        9. 最新 handoff
-        10. 相关真源文档
+        1. \`../../AGENTS.override.md\`
+        2. \`../index.md\`
+        3. \`../../.codex/config.toml\`
+        4. \`../../.codex/agents/README.md\`
+        5. \`./main-thread-bootstrap.md\`
+        6. \`../../.codex/memory/registry.md\`
+        7. 相关领域 memory
+        8. 最新 handoff
+        9. 相关记录系统文档
 
         ## 2. 固定职责
 
@@ -1461,7 +1282,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         - 定义范围和验证方式
         - 选择固定角色
         - 维护计划、run log 和 handoff
-        - 汇总风险和真源更新
+        - 汇总风险和记录系统更新
 
         ## 3. 固定角色池
 
@@ -1469,7 +1290,7 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         ## 4. 任务产物位置
 
-        - \`../../docs/plans/active/<task-slug>.md\`
+        - \`../../docs/exec-plans/active/<task-slug>.md\`
         - \`../../logs/codex/active/<task-slug>/run.md\`
         - \`../../logs/codex/active/<task-slug>/handoff.md\`
       `), "Codex Main Thread Runbook / Codex 主线程 Runbook"),
@@ -1484,16 +1305,15 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         ## 1. Main-thread startup checklist
 
-        1. Read \`AGENTS.md\`.
-        2. Read \`AGENTS.override.md\` if it exists.
-        3. Read \`docs/index.md\`.
-        4. Read \`.codex/config.toml\`.
-        5. Read \`.codex/agents/README.md\`.
-        6. Read \`docs/runbooks/codex-main-thread.md\`.
-        7. Read \`.codex/memory/registry.md\`.
-        8. Read relevant domain memory.
-        9. Read the latest handoff.
-        10. Read the relevant source-of-truth docs.
+        1. Read \`AGENTS.override.md\`.
+        2. Read \`docs/index.md\`.
+        3. Read \`.codex/config.toml\`.
+        4. Read \`.codex/agents/README.md\`.
+        5. Read \`docs/runbooks/codex-main-thread.md\`.
+        6. Read \`.codex/memory/registry.md\`.
+        7. Read relevant domain memory.
+        8. Read the latest handoff.
+        9. Read the relevant record-system docs.
 
         ## 2. Fixed role pool
 
@@ -1547,16 +1367,15 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         ## 1. 主线程启动清单
 
-        1. 阅读 \`AGENTS.md\`。
-        2. 如果存在，阅读 \`AGENTS.override.md\`。
-        3. 阅读 \`docs/index.md\`。
-        4. 阅读 \`.codex/config.toml\`。
-        5. 阅读 \`.codex/agents/README.md\`。
-        6. 阅读 \`docs/runbooks/codex-main-thread.md\`。
-        7. 阅读 \`.codex/memory/registry.md\`。
-        8. 阅读相关领域 memory。
-        9. 阅读最新 handoff。
-        10. 阅读相关真源文档。
+        1. 阅读 \`AGENTS.override.md\`。
+        2. 阅读 \`docs/index.md\`。
+        3. 阅读 \`.codex/config.toml\`。
+        4. 阅读 \`.codex/agents/README.md\`。
+        5. 阅读 \`docs/runbooks/codex-main-thread.md\`。
+        6. 阅读 \`.codex/memory/registry.md\`。
+        7. 阅读相关领域 memory。
+        8. 阅读最新 handoff。
+        9. 阅读相关记录系统文档。
 
         ## 2. 固定角色池
 
@@ -1622,9 +1441,9 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         1. \`../index.md\`
         2. \`../../.codex/memory/backend.md\`
-        3. \`../../docs/source-of-truth/system-overview.md\`
-        4. \`../../docs/source-of-truth/backend-architecture.md\`
-        5. \`../../docs/source-of-truth/api-specification.md\`
+        3. \`../../ARCHITECTURE.md\`
+        4. \`../../docs/design-docs/index.md\`
+        5. \`../../docs/SECURITY.md\`
 
         ## 3. Handoff
 
@@ -1644,9 +1463,9 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         1. \`../index.md\`
         2. \`../../.codex/memory/backend.md\`
-        3. \`../../docs/source-of-truth/system-overview.md\`
-        4. \`../../docs/source-of-truth/backend-architecture.md\`
-        5. \`../../docs/source-of-truth/api-specification.md\`
+        3. \`../../ARCHITECTURE.md\`
+        4. \`../../docs/design-docs/index.md\`
+        5. \`../../docs/SECURITY.md\`
 
         ## 3. Handoff
 
@@ -1671,9 +1490,9 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         1. \`../index.md\`
         2. \`../../.codex/memory/frontend.md\`
-        3. \`../../docs/source-of-truth/system-overview.md\`
-        4. \`../../docs/source-of-truth/frontend-architecture.md\`
-        5. \`../../docs/source-of-truth/api-specification.md\`
+        3. \`../../ARCHITECTURE.md\`
+        4. \`../../docs/FRONTEND.md\`
+        5. \`../../docs/DESIGN.md\`
 
         ## 3. Boundary rule
 
@@ -1695,9 +1514,9 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         1. \`../index.md\`
         2. \`../../.codex/memory/frontend.md\`
-        3. \`../../docs/source-of-truth/system-overview.md\`
-        4. \`../../docs/source-of-truth/frontend-architecture.md\`
-        5. \`../../docs/source-of-truth/api-specification.md\`
+        3. \`../../ARCHITECTURE.md\`
+        4. \`../../docs/FRONTEND.md\`
+        5. \`../../docs/DESIGN.md\`
 
         ## 3. 边界规则
 
@@ -1722,10 +1541,10 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         1. \`../index.md\`
         2. \`../../.codex/memory/runtime.md\`
-        3. \`../../docs/source-of-truth/system-overview.md\`
-        4. \`../../docs/source-of-truth/backend-architecture.md\`
-        5. \`../../docs/source-of-truth/api-specification.md\`
-        6. \`../../docs/source-of-truth/quality-gates.md\`
+        3. \`../../ARCHITECTURE.md\`
+        4. \`../../docs/RELIABILITY.md\`
+        5. \`../../docs/SECURITY.md\`
+        6. \`../../docs/generated/db-schema.md\`
       `), dedent(`
         # Runtime 角色 Runbook
 
@@ -1741,10 +1560,10 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
 
         1. \`../index.md\`
         2. \`../../.codex/memory/runtime.md\`
-        3. \`../../docs/source-of-truth/system-overview.md\`
-        4. \`../../docs/source-of-truth/backend-architecture.md\`
-        5. \`../../docs/source-of-truth/api-specification.md\`
-        6. \`../../docs/source-of-truth/quality-gates.md\`
+        3. \`../../ARCHITECTURE.md\`
+        4. \`../../docs/RELIABILITY.md\`
+        5. \`../../docs/SECURITY.md\`
+        6. \`../../docs/generated/db-schema.md\`
       `), "Runtime Agent Runbook / Runtime 角色 Runbook"),
     },
     {
@@ -1801,8 +1620,8 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         1. \`../index.md\`
         2. the current plan
         3. the current run log and handoff
-        4. \`../../docs/source-of-truth/integration-and-acceptance.md\`
-        5. \`../../docs/source-of-truth/quality-gates.md\`
+        4. \`../../docs/QUALITY_SCORE.md\`
+        5. \`../../docs/RELIABILITY.md\`
       `), dedent(`
         # QA 角色 Runbook
 
@@ -1819,8 +1638,8 @@ function buildGenericRunbooks(config: HarnessConfig): GeneratedFile[] {
         1. \`../index.md\`
         2. 当前计划
         3. 当前 run log 和 handoff
-        4. \`../../docs/source-of-truth/integration-and-acceptance.md\`
-        5. \`../../docs/source-of-truth/quality-gates.md\`
+        4. \`../../docs/QUALITY_SCORE.md\`
+        5. \`../../docs/RELIABILITY.md\`
       `), "QA Agent Runbook / QA 角色 Runbook"),
     },
   ];
@@ -1861,27 +1680,61 @@ function buildGenericSourceOfTruthFiles(config: HarnessConfig): GeneratedFile[] 
   }));
 }
 
+function buildGenericReferenceFiles(): GeneratedFile[] {
+  return [
+    {
+      path: "docs/references/design-system-reference-llms.txt",
+      content: dedent(`
+        Keep design-system guidance concise, versioned, and agent-readable.
+        Prefer stable primitives, explicit tokens, and examples over prose-heavy rules.
+      `),
+    },
+    {
+      path: "docs/references/nixpacks-llms.txt",
+      content: dedent(`
+        Record deployment and build-system assumptions here when the project uses a platform buildpack flow.
+        Keep operational references short and directly actionable for agents.
+      `),
+    },
+    {
+      path: "docs/references/uv-llms.txt",
+      content: dedent(`
+        Capture Python or toolchain-specific package management conventions here when relevant.
+        Prefer repository-local references over external chat context.
+      `),
+    },
+    {
+      path: "docs/exec-plans/tech-debt-tracker.md",
+      content: dedent(`
+        # Tech Debt Tracker
+
+        ## Active Debt
+
+        - Record known debt with owner, impact, and target cleanup window.
+
+        ## Deferred Work
+
+        - Record intentionally postponed improvements and their trigger conditions.
+      `),
+    },
+  ];
+}
+
 function buildGenericManagedFiles(config: HarnessConfig): GeneratedFile[] {
   const files: GeneratedFile[] = [
-    { path: "AGENTS.md", content: buildGenericAgentsMd(config) },
+    { path: "AGENTS.override.md", content: buildGenericAgentsOverride(config) },
     { path: ".codex/config.toml", content: buildCodexConfig(config.projectName) },
     { path: ".codex/agents/README.md", content: buildGenericAgentsReadme(config) },
     { path: ".codex/memory/registry.md", content: buildMemoryRegistry(config) },
     { path: "docs/index.md", content: buildGenericDocsIndex(config) },
-    { path: "docs/plans/active/README.md", content: buildActivePlansReadme(config.language) },
-    { path: "docs/plans/completed/README.md", content: buildCompletedPlansReadme(config.language) },
+    { path: "docs/exec-plans/active/README.md", content: buildActivePlansReadme(config.language) },
+    { path: "docs/exec-plans/completed/README.md", content: buildCompletedPlansReadme(config.language) },
     { path: "logs/codex/active/README.md", content: buildActiveLogsReadme(config.language) },
     { path: "logs/codex/completed/README.md", content: buildCompletedLogsReadme(config.language) },
     ...buildGenericRunbooks(config),
     ...buildGenericSourceOfTruthFiles(config),
+    ...buildGenericReferenceFiles(),
   ];
-
-  if (config.language !== "en") {
-    files.push({
-      path: "AGENTS.override.md",
-      content: buildGenericAgentsOverride(config),
-    });
-  }
 
   for (const role of config.roles) {
     files.push({
@@ -1891,492 +1744,6 @@ function buildGenericManagedFiles(config: HarnessConfig): GeneratedFile[] {
   }
 
   for (const [path, content] of Object.entries(buildGenericMemoryFiles(config.language))) {
-    files.push({ path, content });
-  }
-
-  if (config.devCommand) {
-    files.push({
-      path: config.paths.codexEnvironmentFile,
-      content: buildEnvironmentToml(config.projectName, config.devCommand),
-    });
-  }
-
-  return files;
-}
-
-function buildAgentAdminDocsIndex(): string {
-  return dedent(`
-    # AgentAdmin Documentation Index
-
-    This file is the Codex harness entrypoint for the repository. It links source-of-truth docs,
-    runbooks, memory, and task artifacts together.
-
-    ## 1. Read first
-
-    Main-thread default order:
-
-    1. \`../AGENTS.md\`
-    2. If present, \`../AGENTS.override.md\`
-    3. This file
-    4. \`../.codex/config.toml\`
-    5. \`../.codex/agents/README.md\`
-    6. \`../.codex/memory/registry.md\`
-    7. The matching runbook
-    8. The latest handoff
-    9. Then the implementation
-
-    ## 2. Truth-source layering
-
-    - \`../dev-docs/\` owns project, system, backend, frontend, API, data-model, enum, error-code, naming, collaboration, integration, and checklist truths.
-    - \`../spec/\` owns protocol-level and deep-dive design docs.
-    - \`../docs/\` owns Codex harness instructions, plans, and task artifacts.
-
-    ## 3. Harness-owned files
-
-    - \`../.codex/config.toml\`
-    - \`../.codex/agents/\`
-    - \`../.codex/memory/\`
-    - \`./runbooks/\`
-    - \`./plans/active/\`
-    - \`./plans/completed/\`
-    - \`../logs/codex/active/\`
-    - \`../logs/codex/completed/\`
-  `);
-}
-
-function buildAgentAdminAgentsMd(): string {
-  return dedent(`
-    # AGENTS.md
-
-    AgentAdmin keeps the repository collaboration entrypoint short. Detailed truths live in
-    \`dev-docs/\`, \`spec/\`, \`docs/\`, and \`.codex/memory/\`.
-
-    ## 1. Project direction
-
-    - Java-first, not a chat product or workflow canvas.
-    - Keep a modular monolith and Control Plane / Exec Plane boundaries by default.
-    - Backend stays governance-first; frontend stays console-first.
-    - executor / starter integration remains a differentiated core capability.
-
-    ## 2. Priority order
-
-    Resolve conflicts in this order:
-
-    1. The explicit task request
-    2. \`AGENTS.override.md\`
-    3. This file
-    4. \`docs/index.md\`
-    5. \`dev-docs/\` and \`spec/\`
-    6. Current code
-    7. Chat inference
-
-    ## 3. Before starting any task
-
-    Main threads read:
-
-    1. \`docs/index.md\`
-    2. The matching runbook
-    3. \`.codex/memory/registry.md\`
-    4. Relevant domain memory
-    5. The latest handoff
-    6. Then the code
-
-    ## 4. Durable task artifacts
-
-    - \`docs/plans/active/<task-slug>.md\`
-    - \`logs/codex/active/<task-slug>/run.md\`
-    - \`logs/codex/active/<task-slug>/handoff.md\`
-    - \`.codex/memory/*.md\`
-
-    ## 5. Fixed roles
-
-    - \`architect-backend\`
-    - \`architect-frontend\`
-    - \`runtime-executor\`
-    - \`console-ui\`
-    - \`reviewer\`
-    - \`qa-guard\`
-  `);
-}
-
-function buildAgentAdminAgentsReadme(): string {
-  return dedent(`
-    # Fixed Agent Pool
-
-    This directory is the repository-owned source of truth for the fixed AgentAdmin
-    subagent pool.
-
-    ## Purpose
-
-    - Keep the same narrow-role subagents reusable across threads.
-    - Store role context in repo files instead of relying on chat history.
-    - Give the orchestration main thread a stable place to load role scope before dispatching work.
-
-    ## Fixed roles
-
-    - \`architect-backend.toml\`
-    - \`architect-frontend.toml\`
-    - \`runtime-executor.toml\`
-    - \`console-ui.toml\`
-    - \`reviewer.toml\`
-    - \`qa-guard.toml\`
-  `);
-}
-
-function buildAgentAdminMemoryRegistry(): string {
-  return dedent(`
-    # Codex Memory Registry
-
-    This directory stores reusable durable memory. Its goal is to let future threads read
-    repository facts first, then rely on chat as a supplement.
-
-    ## 1. Read order
-
-    1. This file
-    2. \`../config.toml\`
-    3. \`../agents/README.md\`
-    4. The matching \`../agents/<role>.toml\`
-    5. The matching domain memory
-    6. The latest handoff
-    7. The active plan
-
-    ## 2. Memory files
-
-    | File | Purpose |
-    | --- | --- |
-    | \`backend.md\` | Stable Control Plane backend boundaries and recurring risks |
-    | \`frontend.md\` | Stable console frontend boundaries, route rules, and UI constraints |
-    | \`runtime.md\` | Stable runtime, executor, tool-binding, and SSE boundaries |
-    | \`decisions.md\` | Cross-domain durable decisions and common operating rules |
-  `);
-}
-
-function buildAgentAdminMemoryFiles(): Record<string, string> {
-  return {
-    ".codex/memory/backend.md": dedent(`
-      # Backend Memory
-
-      ## 1. Stable position
-
-      - AgentAdmin backend is a governance control plane first, not the business system itself.
-      - The baseline remains a modular monolith with dual-plane boundaries.
-      - \`agentadmin-server\` is the main control-plane application.
-      - \`agentadmin-runtime\` is a shared runtime kernel, not a generic \`core\`.
-      - \`agentadmin-tool-support\` only provides MCP and SYSTEM tool support, not tool governance.
-    `),
-    ".codex/memory/frontend.md": dedent(`
-      # Frontend Memory
-
-      ## 1. Stable position
-
-      - The frontend is a governance console, not a chat shell and not a workflow canvas.
-      - Routes must clearly separate platform, personal, and tenant scopes.
-      - Tenant context belongs in the URL; permissions are determined by permission nodes plus backend payloads.
-    `),
-    ".codex/memory/runtime.md": dedent(`
-      # Runtime Memory
-
-      ## 1. Stable position
-
-      - Runtime is responsible for orchestrating one agent execution, not a heavyweight workflow engine.
-      - Exec Plane owns real execution; Control Plane owns governance, routing, auditing, and observability.
-      - The v1 execution baseline is \`DIRECT_HTTP\`.
-    `),
-    ".codex/memory/decisions.md": dedent(`
-      # Durable Decisions
-
-      ## Current durable decisions
-
-      - AgentAdmin is a Java-first agent access and governance platform.
-      - The architecture stays modular-monolith-first with explicit Control Plane / Exec Plane boundaries.
-      - executor / starter integration remains a core differentiator.
-      - Harness collaboration is file-first: \`docs/\`, \`logs/codex/\`, and \`.codex/memory/\` carry durable context.
-    `),
-  };
-}
-
-function buildAgentAdminRunbooks(config: HarnessConfig): GeneratedFile[] {
-  return [
-    {
-      path: "docs/runbooks/codex-main-thread.md",
-      content: dedent(`
-        # Codex Main Thread Runbook
-
-        This runbook constrains the single orchestration thread. The main thread is responsible for
-        scoping work, selecting fixed roles, keeping shared context durable, and integrating results.
-
-        ## 1. Read before starting
-
-        1. \`../../AGENTS.md\`
-        2. If present, \`../../AGENTS.override.md\`
-        3. \`../index.md\`
-        4. \`../../.codex/config.toml\`
-        5. \`../../.codex/agents/README.md\`
-        6. \`./main-thread-bootstrap.md\`
-        7. \`../../.codex/memory/registry.md\`
-        8. Relevant domain memory
-        9. The latest handoff
-        10. Relevant truth-source docs
-
-        ## 2. Fixed role pool
-
-        ${config.roles.map((role) => `- \`${role.key}\``).join("\n")}
-      `),
-    },
-    {
-      path: "docs/runbooks/main-thread-bootstrap.md",
-      content: dedent(`
-        # Main Thread Bootstrap
-
-        This file gives a new orchestration main thread a copy-paste prompt plus fixed-role dispatch templates.
-
-        ## 1. Applicable scenarios
-
-        - A new main thread takes ownership of the AgentAdmin repository.
-        - The main thread needs to absorb background first, then split work and establish fixed roles.
-        - The goal is to reuse repository-owned context instead of relying on the previous chat alone.
-
-        ## 2. Main-thread startup prompt
-
-        \`\`\`text
-        You are now the sole orchestration main thread for AgentAdmin.
-
-        Your job is not to implement everything directly. Read repository truth sources first, reuse
-        harness files, maintain plans, route work into the fixed role pool, and persist durable context.
-
-        Read in this order:
-        1. AGENTS.md
-        2. AGENTS.override.md if it exists
-        3. docs/index.md
-        4. .codex/config.toml
-        5. .codex/agents/README.md
-        6. docs/runbooks/main-thread-bootstrap.md
-        7. docs/runbooks/codex-main-thread.md
-        8. .codex/memory/registry.md
-        9. domain memory files as needed
-        10. the latest handoff
-        11. relevant truth-source docs
-
-        The fixed role pool must contain:
-        - architect-backend
-        - architect-frontend
-        - runtime-executor
-        - console-ui
-        - reviewer
-        - qa-guard
-        \`\`\`
-
-        ## 3. Dispatch templates
-
-        ${config.roles
-          .map((role) => {
-            const outOfScope = role.doNot.map((item) => `- ${item}`).join("\n");
-            const readFirst = role.readFirst.map((item, index) => `${index + 1}. \`${item}\``).join("\n");
-            const output = role.defaultOutput.map((item) => `- ${item}`).join("\n");
-            const handoff = role.handoffRequired.map((item) => `- ${item}`).join("\n");
-            return dedent(`
-              ### \`${role.key}\`
-
-              \`\`\`text
-              You are AgentAdmin's \`${role.key}\` fixed role.
-
-              Goal:
-              <fill in the task goal>
-
-              Scope:
-              ${role.scope.map((item) => `- ${item}`).join("\n")}
-
-              Out of scope:
-              ${outOfScope}
-
-              Read first:
-              ${readFirst}
-
-              Expected output:
-              ${output}
-
-              Handoff requirements:
-              ${handoff}
-              \`\`\`
-            `);
-          })
-          .join("\n\n")}
-      `),
-    },
-    {
-      path: "docs/runbooks/backend-agent.md",
-      content: dedent(`
-        # Backend Agent Runbook
-
-        This runbook serves \`architect-backend\`.
-
-        ## 1. Scope
-
-        - Auth / Tenant / RBAC
-        - Agent / Prompt / Tool / Model / Secret / Audit / Jobs
-        - Control-plane Controller / Service / Mapper / DTO / Repository boundaries
-        - API contracts, data models, error codes, naming, and implementation placement
-
-        ## 2. Read before starting
-
-        1. \`../index.md\`
-        2. \`../../.codex/memory/backend.md\`
-        3. \`../../dev-docs/02-system-overview.md\`
-        4. \`../../dev-docs/03-backend-development-architecture.md\`
-        5. \`../../dev-docs/05-api-specification.md\`
-        6. \`../../dev-docs/06-data-model-specification.md\`
-        7. \`../../dev-docs/07-enum-and-state-definitions.md\`
-        8. \`../../dev-docs/08-error-code-specification.md\`
-        9. \`../../dev-docs/09-common-fields-and-naming.md\`
-        10. \`../../dev-docs/10-frontend-backend-collaboration.md\`
-        11. \`../../spec/backend-architecture.md\`
-      `),
-    },
-    {
-      path: "docs/runbooks/frontend-agent.md",
-      content: dedent(`
-        # Frontend Agent Runbook
-
-        This runbook serves both \`architect-frontend\` and \`console-ui\`.
-
-        ## 1. Shared scope
-
-        - platform, personal, and tenant console routes
-        - console navigation, page structure, and feature directory boundaries
-        - permission nodes, tenant switching, and SSE flows
-        - forms, tables, detail pages, state feedback, and risk confirmations
-
-        ## 2. Read before starting
-
-        1. \`../index.md\`
-        2. \`../../.codex/memory/frontend.md\`
-        3. \`../../dev-docs/02-system-overview.md\`
-        4. \`../../dev-docs/04-frontend-development-architecture.md\`
-        5. \`../../dev-docs/05-api-specification.md\`
-        6. \`../../dev-docs/07-enum-and-state-definitions.md\`
-        7. \`../../dev-docs/08-error-code-specification.md\`
-        8. \`../../dev-docs/09-common-fields-and-naming.md\`
-        9. \`../../dev-docs/10-frontend-backend-collaboration.md\`
-        10. \`../../spec/frontend-architecture.md\`
-      `),
-    },
-    {
-      path: "docs/runbooks/runtime-agent.md",
-      content: dedent(`
-        # Runtime Agent Runbook
-
-        This runbook serves \`runtime-executor\`.
-
-        ## 1. Scope
-
-        - agent loading and version resolution
-        - prompt assembly and model selection
-        - tool allowlists, binding, and invocation loops
-        - executor register / heartbeat / invoke
-        - preview / formal run constraints
-        - run / step / event / SSE chains
-
-        ## 2. Read before starting
-
-        1. \`../index.md\`
-        2. \`../../.codex/memory/runtime.md\`
-        3. \`../../dev-docs/02-system-overview.md\`
-        4. \`../../dev-docs/03-backend-development-architecture.md\`
-        5. \`../../dev-docs/05-api-specification.md\`
-        6. \`../../dev-docs/06-data-model-specification.md\`
-        7. \`../../dev-docs/07-enum-and-state-definitions.md\`
-        8. \`../../dev-docs/08-error-code-specification.md\`
-        9. \`../../dev-docs/11-integration-and-acceptance.md\`
-        10. \`../../spec/backend-architecture.md\`
-        11. \`../../spec/executor-protocol.md\`
-        12. \`../../spec/run-stream-event-schema.md\`
-      `),
-    },
-    {
-      path: "docs/runbooks/reviewer-agent.md",
-      content: dedent(`
-        # Reviewer Agent Runbook
-
-        This runbook serves \`reviewer\`.
-
-        ## 1. Review order
-
-        1. Product-direction drift
-        2. Module-boundary breakage
-        3. Tenant, permission, audit, and governance regressions
-        4. API, state, error-code, and SSE regressions
-        5. Missing tests or documentation
-        6. Readability and maintainability
-      `),
-    },
-    {
-      path: "docs/runbooks/qa-agent.md",
-      content: dedent(`
-        # QA Agent Runbook
-
-        This runbook serves \`qa-guard\`.
-
-        ## 1. Scope
-
-        - validation matrix design
-        - unit / integration / contract / E2E / manual verification checklists
-        - quality-gate checks
-        - task-end validation closure
-
-        ## 2. Read before starting
-
-        1. \`../index.md\`
-        2. the current plan
-        3. the current run log and handoff
-        4. \`../../dev-docs/11-integration-and-acceptance.md\`
-        5. \`../../dev-docs/13-pre-development-checklist.md\`
-        6. \`../../spec/quality-gates.md\`
-      `),
-    },
-  ];
-}
-
-function buildAgentAdminTruthSourceFiles(config: HarnessConfig): GeneratedFile[] {
-  return config.truthSources.map((source) => ({
-    path: source.path,
-    content: dedent(`
-      # ${source.title}
-
-      ${source.summary}
-
-      ## Current Baseline
-
-      - Fill in the durable truth for AgentAdmin in this area.
-      - Update this file before implementation semantics drift.
-      - Link matching plans, handoffs, and validation evidence when relevant.
-    `),
-  }));
-}
-
-function buildAgentAdminManagedFiles(config: HarnessConfig): GeneratedFile[] {
-  const files: GeneratedFile[] = [
-    { path: "AGENTS.md", content: buildAgentAdminAgentsMd() },
-    { path: "AGENTS.override.md", content: buildAgentAdminAgentsMd() },
-    { path: ".codex/config.toml", content: buildCodexConfig(config.projectName) },
-    { path: ".codex/agents/README.md", content: buildAgentAdminAgentsReadme() },
-    { path: ".codex/memory/registry.md", content: buildAgentAdminMemoryRegistry() },
-    { path: "docs/index.md", content: buildAgentAdminDocsIndex() },
-    { path: "docs/plans/active/README.md", content: buildActivePlansReadme(config.language) },
-    { path: "docs/plans/completed/README.md", content: buildCompletedPlansReadme(config.language) },
-    { path: "logs/codex/active/README.md", content: buildActiveLogsReadme(config.language) },
-    { path: "logs/codex/completed/README.md", content: buildCompletedLogsReadme(config.language) },
-    ...buildAgentAdminRunbooks(config),
-    ...buildAgentAdminTruthSourceFiles(config),
-  ];
-
-  for (const role of config.roles) {
-    files.push({
-      path: joinPath(config.paths.codexAgentsDir, `${role.key}.toml`),
-      content: buildRoleToml(role),
-    });
-  }
-
-  for (const [path, content] of Object.entries(buildAgentAdminMemoryFiles())) {
     files.push({ path, content });
   }
 
@@ -2400,21 +1767,7 @@ const presetMap = new Map<string, PresetDefinition>([
       paths: genericPaths,
       roles: genericRoles,
       truthSources: genericTruthSources,
-      includeOverrideFile: false,
       buildManagedFiles: buildGenericManagedFiles,
-    },
-  ],
-  [
-    "agentadmin-codex",
-    {
-      key: "agentadmin-codex",
-      defaultLanguage: "zh",
-      defaultProjectName: "AgentAdmin",
-      paths: agentAdminPaths,
-      roles: agentAdminRoles,
-      truthSources: agentAdminTruthSources,
-      includeOverrideFile: true,
-      buildManagedFiles: buildAgentAdminManagedFiles,
     },
   ],
 ]);

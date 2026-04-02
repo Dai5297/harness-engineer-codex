@@ -33,7 +33,7 @@ export async function getStatus(cwd: string): Promise<StatusResult> {
   for (const slug of allTaskSlugs) {
     const missing: string[] = [];
     if (!activeTasks.includes(slug)) {
-      missing.push(`docs/plans/active/${slug}.md`);
+      missing.push(join(config.paths.plansActiveDir, `${slug}.md`).replaceAll("\\", "/"));
     }
     const runPath = join(cwd, config.paths.logsActiveDir, slug, "run.md");
     const handoffPath = join(cwd, config.paths.logsActiveDir, slug, "handoff.md");

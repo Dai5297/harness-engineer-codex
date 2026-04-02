@@ -36,8 +36,8 @@ describe("config helpers", () => {
 
     expect(config.projectName).toBe("Acme Platform");
     expect(config.language).toBe("bilingual");
-    expect(config.managedFiles).toContain("AGENTS.md");
     expect(config.managedFiles).toContain("AGENTS.override.md");
     expect(config.managedFiles).toContain("docs/runbooks/main-thread-bootstrap.md");
+    expect(config.managedFiles).toContain("docs/exec-plans/active/README.md");
   });
 });
