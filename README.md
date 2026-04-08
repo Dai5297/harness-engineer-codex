@@ -23,17 +23,28 @@ Most AI-assisted repos start the same way:
 
 `harness-engineer` solves that by generating a lightweight documentation harness directly in the repository:
 
-- `AGENTS.override.md` as the Codex bootstrap and collaboration contract
+- `HARNESS_BOOTSTRAP.md` as the orchestrator activation protocol and runtime entry point
+- `AGENTS.override.md` as the Codex collaboration guide and bootstrap trigger
 - `.codex/config.toml` and `.codex/agents/*.toml` for project-scoped subagents
 - `ARCHITECTURE.md` for system boundaries and change impact
 - `docs/` for product, design, security, reliability, references, and execution plans
 - `harness-engineer.config.json` so future commands can understand the scaffolded repo
+
+## Key Innovation: Runtime Activation
+
+Unlike typical scaffolding tools, `harness-engineer` provides a **runtime activation layer**:
+
+- `HARNESS_BOOTSTRAP.md` defines the first-turn protocol for Codex
+- Orchestrator mode is enforced through task classification and delegation rules
+- `harness start` provides a standardized activation prompt instead of manual entry
+- The repository now boots Codex into a predictable, coordination-first mode
 
 ## Highlights
 
 - Supports both empty projects and existing repositories
 - Generates a consistent harness baseline with real files, not hardcoded string blobs
 - Adds a dedicated `harness enrich` flow that runs `codex exec` against an existing repo
+- Provides `harness start` for reliable orchestrator mode activation
 - Supports `en`, `zh`, and `bilingual` output modes
 - Tracks managed-file drift with `harness status`
 - Creates and archives durable execution plans with `harness task`
@@ -70,7 +81,15 @@ cd acme-platform
 harness init . --project-name "Acme Platform" --yes
 ```
 
-### 2. Enrich an existing repository
+### 2. Start working with Codex in harness mode
+
+```bash
+harness start
+```
+
+Copy the output from `harness start` and paste it as your first prompt when opening a new Codex session. This activates orchestrator mode with proper delegation rules.
+
+### 3. Enrich an existing repository
 
 ```bash
 cd existing-repo
@@ -80,10 +99,13 @@ harness enrich . --yes
 This will:
 
 1. add any missing harness baseline files
-2. keep existing app code untouched
-3. invoke `codex exec` to enrich the generated docs using repository evidence
+2. create or refresh `HARNESS_BOOTSTRAP.md` for runtime activation
+3. keep existing app code untouched
+4. invoke `codex exec` to enrich the generated docs using repository evidence
 
-### 3. Open a tracked execution plan
+After enrichment, run `harness start` to get your activation prompt.
+
+### 4. Create and track an execution plan
 
 ```bash
 harness task new 2026-04-02-auth-debug --class B
@@ -96,6 +118,7 @@ The default `generic-software` preset creates a structure like this:
 
 ```text
 .
+├── HARNESS_BOOTSTRAP.md          ← Runtime activation protocol
 ├── AGENTS.override.md
 ├── ARCHITECTURE.md
 ├── harness-engineer.config.json
@@ -124,6 +147,23 @@ The default `generic-software` preset creates a structure like this:
 ```
 
 ## CLI Reference
+
+### `harness start`
+
+Generate a standardized activation prompt for Codex in harness mode.
+
+```bash
+harness start
+```
+
+This command checks the repository status and outputs a bootstrap prompt that:
+
+- Instructs Codex to read `HARNESS_BOOTSTRAP.md` first
+- Defines the orchestrator role and delegation rules
+- Shows active execution plans and missing managed files
+- Provides a quick reference for task routing
+
+**Use this output as your first prompt when opening a new Codex session.**
 
 ### `harness init`
 
@@ -199,6 +239,26 @@ It checks:
 - drifted managed files
 - execution plans missing required sections
 
+## Activating Harness Mode
+
+To get Codex operating in harness orchestrator mode:
+
+1. **After initialization or enrichment:**
+   ```bash
+   harness start
+   ```
+
+2. **Copy the output** and paste it as your first prompt in Codex.
+
+3. **Codex will then:**
+   - Read `HARNESS_BOOTSTRAP.md` to understand its role
+   - Follow the first-turn protocol for task classification and delegation
+   - Operate as orchestrator rather than general-purpose assistant
+
+4. **Reopen the repo?** Run `harness start` again for a fresh activation prompt.
+
+This standardized activation ensures consistent behavior across sessions without maintaining manual prompt templates.
+
 ## Language Modes
 
 `harness-engineer` supports three language modes:
@@ -211,14 +271,22 @@ This applies to both `init` and `enrich`, and also to execution-plan templates u
 
 ## How `enrich` works
 
-`harness enrich` is intentionally conservative.
+`harness enrich` is intentionally conservative and runtime-aware.
 
 Before Codex is invoked, the CLI prepares the repo with the managed baseline. Then it runs a scoped `codex exec` prompt that is instructed to:
 
+- enable orchestrator mode activation via `HARNESS_BOOTSTRAP.md`
 - stay inside the harness-managed documentation set
 - recover context from the repo itself
 - avoid modifying source code, dependencies, lockfiles, or CI
 - mark unknowns explicitly instead of inventing details
+
+The enrichment process ensures that:
+
+1. `HARNESS_BOOTSTRAP.md` contains task classification and delegation rules
+2. `AGENTS.override.md` references `HARNESS_BOOTSTRAP.md` first in the read order
+3. Orchestrator role is clearly distinguished from implementation roles
+4. The repository is ready for `harness start` activation
 
 That makes it suitable for retrofitting an existing codebase without turning the command into a code-modifying migration tool.
 
@@ -240,6 +308,10 @@ Those roles appear both in the generated docs and in project-scoped Codex custom
 # initialize a new repo
 harness init . --project-name "Acme Platform" --language bilingual --yes
 
+# get the activation prompt and start Codex
+harness start
+# (copy and paste the output as your first Codex prompt)
+
 # create a tracked task
 harness task new 2026-04-02-onboarding-flow --class B
 
@@ -248,6 +320,7 @@ harness status
 
 # or enrich an existing repository
 harness enrich . --yes
+harness start  # always use harness start when reopening the repo in Codex
 ```
 
 ## Official References

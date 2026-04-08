@@ -8,7 +8,7 @@ import {
 } from "./template-language.js";
 import { loadHarnessConfig } from "./config-service.js";
 import { ensureTrailingNewline } from "../utils/format.js";
-import { movePath, pathExists, readTextFile, writeTextFile } from "../utils/fs.js";
+import { listMarkdownSlugs, movePath, pathExists, readTextFile, writeTextFile } from "../utils/fs.js";
 
 export const ACTIVE_TASK_REQUIRED_SECTIONS = DEFAULT_ACTIVE_TASK_REQUIRED_SECTIONS;
 
@@ -131,3 +131,13 @@ const DEFAULT_TASK_TEMPLATE = `# __TASK_SLUG__
 
 ## Documentation Updates
 `;
+
+export async function listActivePlans(cwd: string): Promise<string[]> {
+  const config = await loadHarnessConfig(cwd);
+  return listMarkdownSlugs(join(cwd, config.paths.plansActiveDir));
+}
+
+export async function hasActivePlans(cwd: string): Promise<boolean> {
+  const plans = await listActivePlans(cwd);
+  return plans.length > 0;
+}

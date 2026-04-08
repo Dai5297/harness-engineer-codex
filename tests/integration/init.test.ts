@@ -33,8 +33,8 @@ describe("initProject", () => {
 
       const overrideContent = await readFile(join(dir, "AGENTS.override.md"), "utf8");
       expect(overrideContent).toContain("Codex Collaboration Guide");
-      expect(overrideContent).toContain("## Root session policy");
-      expect(overrideContent).toContain("The root Codex session is orchestration-only.");
+      expect(overrideContent).toContain("## Root Session Policy");
+      expect(overrideContent).toContain("The root Codex session is **orchestration-only**.");
       expect(overrideContent).toContain("Orchestrator");
       expect(overrideContent).toContain("Planner");
       expect(overrideContent).toContain("Builder");
@@ -160,7 +160,7 @@ describe("initProject", () => {
       expect(agentsContent).toContain("## 目的");
       expect(agentsContent).toContain("偏好协作语言：`中文`");
       expect(agentsContent).toContain("## 主线程策略");
-      expect(agentsContent).toContain("根 Codex 会话只负责编排");
+      expect(agentsContent).toContain("根 Codex 会话**仅负责编排协调**");
     });
   });
 

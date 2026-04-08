@@ -3,4 +3,6 @@ export {
   archiveTask,
   createTask,
   findMissingTaskSections,
+  hasActivePlans,
+  listActivePlans,
 } from "./core/task-service.js";

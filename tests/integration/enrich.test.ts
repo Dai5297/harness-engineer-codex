@@ -51,8 +51,8 @@ describe.sequential("enrich flow", () => {
         expect(architecture).toContain("Generated from fake codex");
 
         const prompt = await readFile(promptFile, "utf8");
-        expect(prompt).toContain('repository-owned harness documentation for "Acme Platform"');
-        expect(prompt).toContain("Do not modify application code");
+        expect(prompt).toContain('You are enriching the harness runtime for "Acme Platform"');
+        expect(prompt).toContain("DO NOT modify application code");
 
         const args = JSON.parse(await readFile(argsFile, "utf8")) as string[];
         expect(args).toContain("exec");

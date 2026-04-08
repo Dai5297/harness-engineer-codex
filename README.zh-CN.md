@@ -23,17 +23,28 @@
 
 `harness-engineer` 的做法是把这套上下文直接落到仓库里：
 
-- `AGENTS.override.md` 作为 Codex 启动入口和协作契约
+- `HARNESS_BOOTSTRAP.md` 作为 orchestrator 激活协议和运行时入口
+- `AGENTS.override.md` 作为 Codex 协作指南和启动触发器
 - `.codex/config.toml` 与 `.codex/agents/*.toml` 作为项目级 subagent 配置
 - `ARCHITECTURE.md` 记录系统边界与改动影响
 - `docs/` 记录产品、设计、安全、可靠性、参考资料和执行计划
 - `harness-engineer.config.json` 让后续 CLI 命令理解当前仓库的 harness 配置
+
+## 核心创新：运行时激活层
+
+与普通脚手架工具不同，`harness-engineer` 提供了**运行时激活层**：
+
+- `HARNESS_BOOTSTRAP.md` 定义了 Codex 的首轮协议
+- 通过任务分类和委派规则强制 orchestrator 模式
+- `harness start` 提供标准化激活提示词，替代手动输入
+- 仓库现在会以可预测、协调优先的模式启动 Codex
 
 ## 核心亮点
 
 - 同时支持空项目初始化和已有仓库补全
 - 生成真实文件模板，而不是把 markdown 大段硬编码进 TypeScript
 - 提供 `harness enrich`，对已有仓库执行受约束的 `codex exec` 文档补全
+- 提供 `harness start` 实现可靠的 orchestrator 模式激活
 - 支持 `en`、`zh`、`bilingual` 三种输出模式
 - 通过 `harness status` 检测受管理文档缺失和漂移
 - 通过 `harness task` 创建和归档可长期维护的执行计划
@@ -70,7 +81,15 @@ cd acme-platform
 harness init . --project-name "Acme Platform" --yes
 ```
 
-### 2. 补全一个已有仓库
+### 2. 在 harness 模式下开始与 Codex 协作
+
+```bash
+harness start
+```
+
+复制 `harness start` 的输出，作为你在 Codex 中开启新会话的第一个提示词。这将激活 orchestrator 模式和正确的委派规则。
+
+### 3. 补全一个已有仓库
 
 ```bash
 cd existing-repo
@@ -80,10 +99,13 @@ harness enrich . --yes
 这条命令会：
 
 1. 补齐缺失的 harness 基线文件
-2. 不去修改现有业务代码
-3. 调用 `codex exec`，基于仓库事实补全文档背景信息
+2. 创建或刷新 `HARNESS_BOOTSTRAP.md` 用于运行时激活
+3. 不去修改现有业务代码
+4. 调用 `codex exec`，基于仓库事实补全文档背景信息
 
-### 3. 创建一个可追踪执行计划
+补全后，运行 `harness start` 获取你的激活提示词。
+
+### 4. 创建和追踪执行计划
 
 ```bash
 harness task new 2026-04-02-auth-debug --class B
@@ -96,6 +118,7 @@ harness status
 
 ```text
 .
+├── HARNESS_BOOTSTRAP.md          ← 运行时激活协议
 ├── AGENTS.override.md
 ├── ARCHITECTURE.md
 ├── harness-engineer.config.json
@@ -124,6 +147,23 @@ harness status
 ```
 
 ## CLI 命令参考
+
+### `harness start`
+
+生成用于 harness 模式下 Codex 的标准化激活提示词。
+
+```bash
+harness start
+```
+
+这条命令会检查仓库状态，并输出一份启动提示词，用于：
+
+- 指示 Codex 首先读取 `HARNESS_BOOTSTRAP.md`
+- 定义 orchestrator 角色和委派规则
+- 显示当前活跃执行计划和缺失文件
+- 提供任务路由的快速参考
+
+**在 Codex 中开启新会话时，将此输出作为第一个提示词复制粘贴。**
 
 ### `harness init`
 
@@ -199,6 +239,26 @@ harness status
 - 已漂移的受管理文件
 - 缺少必要章节的执行计划
 
+## 激活 Harness 模式
+
+让 Codex 进入 harness orchestrator 模式：
+
+1. **初始化或补全后：**
+   ```bash
+   harness start
+   ```
+
+2. **复制输出内容**，作为在 Codex 中的第一个提示词。
+
+3. **Codex 将会：**
+   - 读取 `HARNESS_BOOTSTRAP.md` 理解自己的角色
+   - 遵循首轮协议进行任务分类和委派
+   - 作为 orchestrator 而非通用助手运行
+
+4. **重新打开仓库？** 再次运行 `harness start` 获取新的激活提示词。
+
+这种标准化激活确保跨会话的一致行为，无需维护手动提示词模板。
+
 ## 语言模式
 
 `harness-engineer` 支持三种语言模式：
@@ -211,16 +271,24 @@ harness status
 
 ## `enrich` 的工作方式
 
-`harness enrich` 默认是保守的。
+`harness enrich` 默认是保守的，并且运行时感知（runtime-aware）。
 
 在调用 Codex 之前，CLI 会先补齐受管理的基础文档。之后它会运行一段受约束的 `codex exec` prompt，明确要求 Codex：
 
+- 通过 `HARNESS_BOOTSTRAP.md` 启用 orchestrator 模式
 - 只在 harness 管理的文档范围内工作
 - 基于仓库证据恢复上下文
 - 不修改源码、依赖、锁文件和 CI
 - 对不确定的信息明确标注，而不是凭空补全
 
-因此它更适合“给现有代码库补文档背景”，而不是“做一条会改代码的迁移命令”。
+补全过程确保：
+
+1. `HARNESS_BOOTSTRAP.md` 包含任务分类和委派规则
+2. `AGENTS.override.md` 在读取顺序中首先引用 `HARNESS_BOOTSTRAP.md`
+3. orchestrator 角色与实现角色明确区分
+4. 仓库已准备好进行 `harness start` 激活
+
+因此它更适合”给现有代码库补文档背景”，而不是”做一条会改代码的迁移命令”。
 
 ## 协作角色模型
 
@@ -240,6 +308,10 @@ harness status
 # 初始化一个新仓库
 harness init . --project-name "Acme Platform" --language bilingual --yes
 
+# 获取激活提示词并启动 Codex
+harness start
+# （复制输出内容，作为在 Codex 中的第一个提示词）
+
 # 创建执行计划
 harness task new 2026-04-02-onboarding-flow --class B
 
@@ -248,6 +320,7 @@ harness status
 
 # 或者给已有仓库补文档
 harness enrich . --yes
+harness start  # 在 Codex 中重新打开仓库时，始终使用 harness start
 ```
 
 ## 官方参考资料

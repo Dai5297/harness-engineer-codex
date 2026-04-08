@@ -4,7 +4,7 @@ export { initProject } from "./init.js";
 export { getPreset } from "./presets.js";
 export { renderTemplate } from "./render.js";
 export { getStatus } from "./status.js";
-export { archiveTask, createTask, findMissingTaskSections } from "./tasks.js";
+export { archiveTask, createTask, findMissingTaskSections, hasActivePlans, listActivePlans } from "./tasks.js";
 export type {
   CliIo,
   CodexAvailabilityResult,
